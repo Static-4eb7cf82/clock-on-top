@@ -1,7 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap");
-
 :root {
-  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-family: "Inter", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -38,18 +36,13 @@ body {
 }
 
 .clock {
-  font-size: 26px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  padding: 0em 0.2em;
-  color: rgba(255, 255, 255, 0.9);
-  background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   cursor: grab;
   user-select: none;
   pointer-events: auto;
   white-space: nowrap;
-  /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9); */
 }
 
 .clock.dragging {

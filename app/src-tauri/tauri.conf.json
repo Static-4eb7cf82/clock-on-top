@@ -12,7 +12,9 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Clock Overlay",
+        "url": "index.html",
         "fullscreen": false,
         "width": 50,
         "height": 50,
@@ -21,6 +23,21 @@
         "shadow": false,
         "resizable": false,
         "alwaysOnTop": true
+      },
+      {
+        "label": "settings",
+        "title": "Clock Settings",
+        "url": "settings.html",
+        "visible": false,
+        "width": 420,
+        "height": 560,
+        "transparent": false,
+        "decorations": false,
+        "shadow": true,
+        "resizable": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "center": true
       }
     ],
     "security": {

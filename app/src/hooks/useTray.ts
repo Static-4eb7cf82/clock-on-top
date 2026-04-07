@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { TrayIcon, TrayIconOptions } from "@tauri-apps/api/tray";
 import { Menu } from "@tauri-apps/api/menu/menu";
+import { PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { Image } from "@tauri-apps/api/image";
 import { exit } from "@tauri-apps/plugin-process";
+import { invoke } from "@tauri-apps/api/core";
 import { resolveResource } from "@tauri-apps/api/path";
 
 function useTray() {
@@ -18,11 +20,23 @@ function useTray() {
         const menu = await Menu.new({
           items: [
             {
+              id: "settings",
+              text: "Settings",
+              action: () => {
+                invoke("open_settings_window").catch((error) => {
+                  console.error("Failed to open settings window:", error);
+                });
+              },
+            },
+            await PredefinedMenuItem.new({ item: "Separator" }),
+            {
               id: "quit",
               text: "Quit",
-              action: async () => {
+              action: () => {
                 console.log("quit pressed");
-                await exit(0);
+                exit(0).catch((error) => {
+                  console.error("Failed to quit app:", error);
+                });
               },
             },
           ],
