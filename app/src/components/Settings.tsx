@@ -17,6 +17,8 @@ import Divider from "@mui/joy/Divider";
 import Tooltip from "@mui/joy/Tooltip";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import { ClockSettings, DEFAULTS } from "../settings";
 
 const settingsTheme = extendTheme({
@@ -48,12 +50,19 @@ const settingsTheme = extendTheme({
 
 interface SettingRowProps {
   label: string;
+  labelAdornment?: React.ReactNode;
   isDirty: boolean;
   onReset: () => void;
   children: React.ReactNode;
 }
 
-function SettingRow({ label, isDirty, onReset, children }: SettingRowProps) {
+function SettingRow({
+  label,
+  labelAdornment,
+  isDirty,
+  onReset,
+  children,
+}: SettingRowProps) {
   return (
     <FormControl>
       <Box
@@ -64,9 +73,12 @@ function SettingRow({ label, isDirty, onReset, children }: SettingRowProps) {
           mb: 0.75,
         }}
       >
-        <FormLabel sx={{ mb: 0, fontFamily: "Inter, sans-serif" }}>
-          {label}
-        </FormLabel>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <FormLabel sx={{ mb: 0, fontFamily: "Inter, sans-serif" }}>
+            {label}
+          </FormLabel>
+          {labelAdornment}
+        </Box>
         {isDirty && (
           <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
             <IconButton
@@ -331,6 +343,48 @@ function Settings() {
             {/* Text Shadow */}
             <SettingRow
               label="Text Shadow"
+              labelAdornment={
+                <Tooltip
+                  size="md"
+                  placement="top"
+                  variant="soft"
+                  title={
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Typography level="body-sm" sx={{ color: "text.primary" }}>
+                        Accepts valid text-shadow CSS. Learn more here
+                      </Typography>
+                      <IconButton
+                        size="sm"
+                        component="a"
+                        href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-shadow"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="plain"
+                        color="neutral"
+                        sx={{ minWidth: 22, minHeight: 22, width: 22, height: 22 }}
+                      >
+                        <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Box>
+                  }
+                >
+                  <IconButton
+                    size="sm"
+                    color="neutral"
+                    variant="plain"
+                    sx={{
+                      minWidth: 22,
+                      minHeight: 22,
+                      width: 22,
+                      height: 22,
+                      cursor: "default",
+                      "&:hover": { cursor: "default" },
+                    }}
+                  >
+                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              }
               isDirty={isDiff("textShadow")}
               onReset={() => resetOne("textShadow")}
             >
