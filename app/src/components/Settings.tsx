@@ -68,10 +68,11 @@ function SettingRow({ label, isDirty, onReset, children }: SettingRowProps) {
           {label}
         </FormLabel>
         {isDirty && (
-          <Tooltip title="Reset to default" size="sm" placement="top" variant="soft">
+          <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
             <IconButton
               size="sm"
               color="neutral"
+              variant="soft"
               onClick={onReset}
               sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
             >
@@ -220,7 +221,7 @@ function Settings() {
           }}
         >
           <Typography
-            level="title-sm"
+            level="title-md"
             sx={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
           >
             Clock Settings
@@ -243,7 +244,7 @@ function Settings() {
           sx={{
             flex: 1,
             overflowY: "auto",
-            overflowX: "hidden",
+            overflowX: "auto",
             px: 2.5,
             py: 2.5,
             display: "flex",
