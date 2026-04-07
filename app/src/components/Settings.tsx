@@ -385,6 +385,8 @@ function Settings() {
               />
             </SettingRow>
 
+            <Divider />
+
             {/* Background Border Radius */}
             <SettingRow
               label={`Background Border Radius — ${local.borderRadius}px`}
@@ -400,8 +402,6 @@ function Settings() {
                 onChange={(_, v) => update({ borderRadius: v as number })}
               />
             </SettingRow>
-
-            <Divider />
 
             {/* Text Shadow */}
             <SettingRow
@@ -458,8 +458,6 @@ function Settings() {
                 onChange={(e) => update({ textShadow: e.target.value })}
               />
             </SettingRow>
-
-            <Divider />
 
             {/* Padding */}
             <SettingRow
