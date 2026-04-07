@@ -46,6 +46,18 @@ const settingsTheme = extendTheme({
   },
 });
 
+const sliderSlotSx = {
+  flex: 1,
+  minHeight: 28,
+  display: "flex",
+  alignItems: "center",
+};
+
+const sliderSx = {
+  my: 0,
+  py: 0,
+};
+
 // ── Row wrapper ──────────────────────────────────────────────────────────────
 
 interface SettingRowProps {
@@ -114,7 +126,15 @@ function SettingRow({
           )}
         </Box>
       </Box>
-      {children}
+      <Box
+        sx={{
+          width: "50%",
+          ml: "auto",
+          minWidth: 0,
+        }}
+      >
+        {children}
+      </Box>
     </FormControl>
   );
 }
@@ -151,7 +171,7 @@ function ColorRow({
           flexShrink: 0,
         }}
       />
-      <Box sx={{ flex: 1 }}>
+      <Box sx={sliderSlotSx}>
         <Slider
           size="sm"
           min={0}
@@ -159,6 +179,7 @@ function ColorRow({
           step={0.01}
           value={opacityValue}
           onChange={(_, v) => onOpacityChange(v as number)}
+          sx={sliderSx}
         />
       </Box>
       <Typography
@@ -327,20 +348,41 @@ function Settings() {
               />
             </SettingRow>
 
+            <Divider />
+
             {/* Font Size */}
             <SettingRow
-              label={`Font Size — ${local.fontSize}px`}
+              label="Font Size"
               isDirty={isDiff("fontSize")}
               onReset={() => resetOne("fontSize")}
             >
-              <Slider
-                size="sm"
-                min={10}
-                max={400}
-                step={1}
-                value={local.fontSize}
-                onChange={(_, v) => update({ fontSize: v as number })}
-              />
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Typography
+                  level="body-xs"
+                  sx={{
+                    minWidth: 42,
+                    textAlign: "right",
+                    fontVariantNumeric: "tabular-nums",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    minHeight: 28,
+                  }}
+                >
+                  {local.fontSize}px
+                </Typography>
+                <Box sx={sliderSlotSx}>
+                  <Slider
+                    size="sm"
+                    min={10}
+                    max={400}
+                    step={1}
+                    value={local.fontSize}
+                    onChange={(_, v) => update({ fontSize: v as number })}
+                    sx={sliderSx}
+                  />
+                </Box>
+              </Stack>
             </SettingRow>
 
             <Divider />
@@ -363,6 +405,8 @@ function Settings() {
                 onOpacityChange={(v) => update({ foregroundOpacity: v })}
               />
             </SettingRow>
+
+            <Divider />
 
             {/* Background Color */}
             <SettingRow
@@ -389,19 +433,40 @@ function Settings() {
 
             {/* Background Border Radius */}
             <SettingRow
-              label={`Background Border Radius — ${local.borderRadius}px`}
+              label="Background Border Radius"
               isDirty={isDiff("borderRadius")}
               onReset={() => resetOne("borderRadius")}
             >
-              <Slider
-                size="sm"
-                min={0}
-                max={270}
-                step={1}
-                value={local.borderRadius}
-                onChange={(_, v) => update({ borderRadius: v as number })}
-              />
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Typography
+                  level="body-xs"
+                  sx={{
+                    minWidth: 42,
+                    textAlign: "right",
+                    fontVariantNumeric: "tabular-nums",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    minHeight: 28,
+                  }}
+                >
+                  {local.borderRadius}px
+                </Typography>
+                <Box sx={sliderSlotSx}>
+                  <Slider
+                    size="sm"
+                    min={0}
+                    max={270}
+                    step={1}
+                    value={local.borderRadius}
+                    onChange={(_, v) => update({ borderRadius: v as number })}
+                    sx={sliderSx}
+                  />
+                </Box>
+              </Stack>
             </SettingRow>
+
+            <Divider />
 
             {/* Text Shadow */}
             <SettingRow
@@ -459,6 +524,8 @@ function Settings() {
               />
             </SettingRow>
 
+            <Divider />
+
             {/* Padding */}
             <SettingRow
               label="Padding"
@@ -470,7 +537,7 @@ function Settings() {
                 })
               }
             >
-              <Stack direction="row" spacing={1.5}>
+              <Stack spacing={1.5}>
                 <FormControl size="sm" sx={{ flex: 1 }}>
                   <FormLabel sx={{ fontFamily: "Inter, sans-serif" }}>
                     Vertical
