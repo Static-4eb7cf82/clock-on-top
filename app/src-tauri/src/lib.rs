@@ -37,7 +37,10 @@ impl Default for ClockSettings {
 
 fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let base = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    Ok(base.join("settings.json"))
+    let roaming = base
+        .parent()
+        .ok_or_else(|| "Cannot determine AppData\\Roaming directory".to_string())?;
+    Ok(roaming.join("Clock Overlay").join("settings.json"))
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────
