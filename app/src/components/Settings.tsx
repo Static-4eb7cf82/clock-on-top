@@ -70,28 +70,49 @@ function SettingRow({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          minHeight: 24,
           mb: 0.75,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <FormLabel sx={{ mb: 0, fontFamily: "Inter, sans-serif" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minHeight: 24 }}>
+          <FormLabel
+            sx={{
+              mb: 0,
+              fontFamily: "Inter, sans-serif",
+              lineHeight: 1,
+              display: "flex",
+              alignItems: "center",
+              minHeight: 24,
+            }}
+          >
             {label}
           </FormLabel>
           {labelAdornment}
         </Box>
-        {isDirty && (
-          <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
-            <IconButton
-              size="sm"
-              color="neutral"
-              variant="soft"
-              onClick={onReset}
-              sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
-            >
-              <RestartAltRoundedIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Tooltip>
-        )}
+        <Box
+          sx={{
+            width: 24,
+            height: 24,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {isDirty && (
+            <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
+              <IconButton
+                size="sm"
+                color="neutral"
+                variant="soft"
+                onClick={onReset}
+                sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
+              >
+                <RestartAltRoundedIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
       {children}
     </FormControl>
