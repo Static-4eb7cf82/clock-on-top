@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { CssVarsProvider } from "@mui/joy/styles";
+import { CssVarsProvider, extendTheme } from "@mui/joy/styles";
+import CssBaseline from "@mui/joy/CssBaseline";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
@@ -16,6 +17,31 @@ import Divider from "@mui/joy/Divider";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import { ClockSettings, DEFAULTS } from "../settings";
+
+const settingsTheme = extendTheme({
+  components: {
+    JoyInput: {
+      defaultProps: {
+        variant: "outlined",
+      },
+    },
+    JoyButton: {
+      defaultProps: {
+        variant: "outlined",
+      },
+    },
+    JoyIconButton: {
+      defaultProps: {
+        variant: "outlined",
+      },
+    },
+    JoySheet: {
+      defaultProps: {
+        variant: "outlined",
+      },
+    },
+  },
+});
 
 // ── Row wrapper ──────────────────────────────────────────────────────────────
 
@@ -43,7 +69,6 @@ function SettingRow({ label, isDirty, onReset, children }: SettingRowProps) {
         {isDirty && (
           <IconButton
             size="sm"
-            variant="plain"
             color="neutral"
             onClick={onReset}
             title="Reset to default"
@@ -160,7 +185,8 @@ function Settings() {
   };
 
   return (
-    <CssVarsProvider defaultMode="dark">
+    <CssVarsProvider theme={settingsTheme} defaultMode="dark" modeStorageKey="clock-overlay-settings-mode">
+      <CssBaseline />
       <Sheet
         sx={{
           width: "100vw",
@@ -168,8 +194,8 @@ function Settings() {
           display: "flex",
           flexDirection: "column",
           fontFamily: "Inter, sans-serif",
-          bgcolor: "#f7f8fa",
-          color: "#101418",
+          bgcolor: "background.body",
+          color: "text.primary",
           overflow: "hidden",
           borderRadius: 0,
         }}
@@ -183,7 +209,7 @@ function Settings() {
             justifyContent: "space-between",
             px: 2,
             py: 1.25,
-            cursor: "grab",
+            cursor: "default",
             userSelect: "none",
             borderBottom: "1px solid",
             borderColor: "divider",
@@ -192,13 +218,12 @@ function Settings() {
         >
           <Typography
             level="title-sm"
-            sx={{ fontFamily: "Inter, sans-serif", fontWeight: 600, color: "#101418" }}
+            sx={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
           >
             Clock Settings
           </Typography>
           <IconButton
             size="sm"
-            variant="plain"
             color="neutral"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={() =>
@@ -215,6 +240,7 @@ function Settings() {
           sx={{
             flex: 1,
             overflowY: "auto",
+            overflowX: "hidden",
             px: 2.5,
             py: 2.5,
             display: "flex",
@@ -366,7 +392,6 @@ function Settings() {
           }}
         >
           <Button
-            variant="soft"
             color="neutral"
             size="sm"
             fullWidth
