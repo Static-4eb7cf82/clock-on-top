@@ -28,7 +28,7 @@ impl Default for ClockSettings {
             foreground_opacity: 0.9,
             background_color: "#000000".to_string(),
             background_opacity: 0.2,
-            text_shadow: String::new(),
+            text_shadow: "1px 1px 3px rgba(0,0,0,0.9)".to_string(),
             padding_vertical: "0em".to_string(),
             padding_horizontal: "0.2em".to_string(),
         }

@@ -229,6 +229,7 @@ function Settings() {
             size="sm"
             color="neutral"
             onMouseDown={(e) => e.stopPropagation()}
+            variant="plain"
             onClick={() =>
               invoke("close_settings_window").catch(console.error)
             }

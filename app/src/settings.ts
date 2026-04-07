@@ -17,7 +17,7 @@ export const DEFAULTS: ClockSettings = {
   foregroundOpacity: 0.9,
   backgroundColor: "#000000",
   backgroundOpacity: 0.2,
-  textShadow: "",
+  textShadow: "1px 1px 3px rgba(0,0,0,0.9)",
   paddingVertical: "0em",
   paddingHorizontal: "0.2em",
 };
