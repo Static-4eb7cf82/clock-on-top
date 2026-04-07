@@ -5,6 +5,7 @@ export interface ClockSettings {
   foregroundOpacity: number;
   backgroundColor: string;
   backgroundOpacity: number;
+  borderRadius: number;
   textShadow: string;
   paddingVertical: string;
   paddingHorizontal: string;
@@ -17,6 +18,7 @@ export const DEFAULTS: ClockSettings = {
   foregroundOpacity: 0.9,
   backgroundColor: "#000000",
   backgroundOpacity: 0.2,
+  borderRadius: 8,
   textShadow: "1px 1px 3px rgba(0,0,0,0.9)",
   paddingVertical: "0em",
   paddingHorizontal: "0.2em",

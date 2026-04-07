@@ -310,7 +310,7 @@ function Settings() {
               <Slider
                 size="sm"
                 min={10}
-                max={96}
+                max={400}
                 step={1}
                 value={local.fontSize}
                 onChange={(_, v) => update({ fontSize: v as number })}
@@ -356,6 +356,22 @@ function Settings() {
                 opacityValue={local.backgroundOpacity}
                 onColorChange={(v) => update({ backgroundColor: v })}
                 onOpacityChange={(v) => update({ backgroundOpacity: v })}
+              />
+            </SettingRow>
+
+            {/* Background Border Radius */}
+            <SettingRow
+              label={`Background Border Radius — ${local.borderRadius}px`}
+              isDirty={isDiff("borderRadius")}
+              onReset={() => resetOne("borderRadius")}
+            >
+              <Slider
+                size="sm"
+                min={0}
+                max={270}
+                step={1}
+                value={local.borderRadius}
+                onChange={(_, v) => update({ borderRadius: v as number })}
               />
             </SettingRow>
 

@@ -73,6 +73,7 @@ function Clock() {
           fontSize: `${settings.fontSize}px`,
           color: hexToRgba(settings.foregroundColor, settings.foregroundOpacity),
           backgroundColor: hexToRgba(settings.backgroundColor, settings.backgroundOpacity),
+          borderRadius: `${settings.borderRadius}px`,
           textShadow: settings.textShadow || undefined,
           padding: `${settings.paddingVertical} ${settings.paddingHorizontal}`,
         }}

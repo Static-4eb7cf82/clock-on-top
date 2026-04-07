@@ -6,7 +6,7 @@ use tauri::Manager;
 // ── Settings type ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 struct ClockSettings {
     font_family: String,
     font_size: f64,
@@ -14,6 +14,7 @@ struct ClockSettings {
     foreground_opacity: f64,
     background_color: String,
     background_opacity: f64,
+    border_radius: f64,
     text_shadow: String,
     padding_vertical: String,
     padding_horizontal: String,
@@ -28,6 +29,7 @@ impl Default for ClockSettings {
             foreground_opacity: 0.9,
             background_color: "#000000".to_string(),
             background_opacity: 0.2,
+            border_radius: 8.0,
             text_shadow: "1px 1px 3px rgba(0,0,0,0.9)".to_string(),
             padding_vertical: "0em".to_string(),
             padding_horizontal: "0.2em".to_string(),
