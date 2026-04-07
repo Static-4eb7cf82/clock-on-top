@@ -231,7 +231,7 @@ function Settings() {
           display: "flex",
           flexDirection: "column",
           fontFamily: "Inter, sans-serif",
-          bgcolor: "background.body",
+          bgcolor: "background.sheet",
           color: "text.primary",
           overflow: "hidden",
           borderRadius: 0,
