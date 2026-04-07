@@ -278,6 +278,32 @@ function Settings() {
             flex: 1,
             overflowY: "auto",
             overflowX: "auto",
+            scrollbarGutter: "stable",
+            scrollbarWidth: "thin",
+            scrollbarColor: "transparent transparent",
+            "&::-webkit-scrollbar": {
+              width: 10,
+              height: 10,
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "transparent",
+              borderRadius: 999,
+              border: "2px solid transparent",
+              backgroundClip: "content-box",
+            },
+            "&:hover": {
+              scrollbarColor:
+                "var(--joy-palette-neutral-plainHoverBg) transparent",
+            },
+            "&:hover::-webkit-scrollbar-thumb": {
+              backgroundColor: "var(--joy-palette-neutral-plainHoverBg)",
+            },
+            "&:hover::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: "var(--joy-palette-neutral-plainActiveBg)",
+            },
             px: 2.5,
             py: 2.5,
             display: "flex",
