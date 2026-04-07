@@ -14,6 +14,7 @@ import IconButton from "@mui/joy/IconButton";
 import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
 import Divider from "@mui/joy/Divider";
+import Tooltip from "@mui/joy/Tooltip";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import { ClockSettings, DEFAULTS } from "../settings";
@@ -67,14 +68,16 @@ function SettingRow({ label, isDirty, onReset, children }: SettingRowProps) {
           {label}
         </FormLabel>
         {isDirty && (
-          <IconButton
-            size="sm"
-            color="neutral"
-            onClick={onReset}
-            title="Reset to default"
-          >
-            <RestartAltRoundedIcon sx={{ fontSize: 15 }} />
-          </IconButton>
+          <Tooltip title="Reset to default" size="sm" placement="top" variant="soft">
+            <IconButton
+              size="sm"
+              color="neutral"
+              onClick={onReset}
+              sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
+            >
+              <RestartAltRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
         )}
       </Box>
       {children}
@@ -229,7 +232,6 @@ function Settings() {
             onClick={() =>
               invoke("close_settings_window").catch(console.error)
             }
-            title="Close"
           >
             <CloseRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
