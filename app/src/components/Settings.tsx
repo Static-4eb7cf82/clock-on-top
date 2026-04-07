@@ -243,7 +243,7 @@ function Settings() {
   };
 
   return (
-    <CssVarsProvider theme={settingsTheme} defaultMode="dark" modeStorageKey="clock-overlay-settings-mode">
+    <CssVarsProvider theme={settingsTheme} defaultMode="dark" modeStorageKey="clock-on-top-settings-mode">
       <CssBaseline />
       <Sheet
         sx={{

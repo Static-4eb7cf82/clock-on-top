@@ -1,5 +1,5 @@
 [package]
-name = "clock-overlay"
+name = "clock-on-top"
 version = "0.3.0"
 description = "A Tauri App"
 authors = ["Static-4eb7cf82"]

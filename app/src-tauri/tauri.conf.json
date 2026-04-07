@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Clock Overlay",
+  "productName": "Clock On Top",
   "version": "0.3.0",
-  "identifier": "com.static-4eb7cf82.clock-overlay",
+  "identifier": "com.static-4eb7cf82.clock-on-top",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Clock Overlay",
+        "title": "Clock On Top",
         "url": "index.html",
         "fullscreen": false,
         "width": 50,

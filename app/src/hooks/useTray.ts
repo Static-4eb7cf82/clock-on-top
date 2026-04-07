@@ -47,7 +47,7 @@ function useTray() {
         const options: TrayIconOptions = {
           menu: menu,
           icon: icon,
-          tooltip: "Clock Overlay",
+          tooltip: "Clock On Top",
         };
 
         await TrayIcon.new(options);

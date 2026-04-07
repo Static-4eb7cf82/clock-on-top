@@ -42,7 +42,7 @@ fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let roaming = base
         .parent()
         .ok_or_else(|| "Cannot determine AppData\\Roaming directory".to_string())?;
-    Ok(roaming.join("Clock Overlay").join("settings.json"))
+    Ok(roaming.join("Clock On Top").join("settings.json"))
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────

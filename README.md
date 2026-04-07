@@ -1,6 +1,6 @@
-# Clock Overlay
+# Clock On Top
 
-A minimalist desktop clock overlay that stays on top of all your windows. Built with Tauri, React, and TypeScript.
+A minimalist desktop clock that stays on top of all your windows. Built with Tauri, React, and TypeScript.
 
 <img src="assets/34XVqg6ZqY.jpg" width="850" />
 
