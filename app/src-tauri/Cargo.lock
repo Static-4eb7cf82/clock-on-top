@@ -448,8 +448,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "clock-overlay"
-version = "0.3.0"
+name = "clock-on-top"
+version = "0.4.0"
 dependencies = [
  "serde",
  "serde_json",

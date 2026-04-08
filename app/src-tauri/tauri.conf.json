@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Clock Overlay",
-  "version": "0.3.0",
-  "identifier": "com.static-4eb7cf82.clock-overlay",
+  "productName": "Clock On Top",
+  "version": "0.4.0",
+  "identifier": "com.static-4eb7cf82.clock-on-top",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "Clock Overlay",
+        "label": "main",
+        "title": "Clock On Top",
+        "url": "index.html",
         "fullscreen": false,
         "width": 50,
         "height": 50,
@@ -21,6 +23,21 @@
         "shadow": false,
         "resizable": false,
         "alwaysOnTop": true
+      },
+      {
+        "label": "settings",
+        "title": "Clock Settings",
+        "url": "settings.html",
+        "visible": false,
+        "width": 600,
+        "height": 600,
+        "transparent": false,
+        "decorations": false,
+        "shadow": true,
+        "resizable": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "center": true
       }
     ],
     "security": {

@@ -1,5 +1,5 @@
 {
-  "name": "Clock Overlay",
+  "name": "Clock On Top",
   "dockerFile": "Dockerfile",
   "customizations": {
     "vscode": {
