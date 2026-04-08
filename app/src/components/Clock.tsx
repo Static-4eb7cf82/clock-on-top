@@ -2,9 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import useSettings from "../hooks/useSettings";
+import useTray from "../hooks/useTray";
 import { hexToRgba } from "../settings";
 
 function Clock() {
+  useTray();
   const [now, setNow] = useState(() => new Date());
   const [isDragging, setIsDragging] = useState(false);
   const clockRef = useRef<HTMLDivElement>(null);
