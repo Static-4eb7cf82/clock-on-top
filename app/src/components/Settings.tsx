@@ -21,31 +21,6 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import { ClockSettings, DEFAULTS } from "../settings";
 
-const settingsTheme = extendTheme({
-  components: {
-    JoyInput: {
-      defaultProps: {
-        variant: "outlined",
-      },
-    },
-    JoyButton: {
-      defaultProps: {
-        variant: "outlined",
-      },
-    },
-    JoyIconButton: {
-      defaultProps: {
-        variant: "outlined",
-      },
-    },
-    JoySheet: {
-      defaultProps: {
-        variant: "outlined",
-      },
-    },
-  },
-});
-
 const sliderSlotSx = {
   flex: 1,
   minHeight: 28,
@@ -90,7 +65,6 @@ function SettingRow({
           <FormLabel
             sx={{
               mb: 0,
-              fontFamily: "Inter, sans-serif",
               lineHeight: 1,
               display: "flex",
               alignItems: "center",
@@ -243,7 +217,7 @@ function Settings() {
   };
 
   return (
-    <CssVarsProvider theme={settingsTheme} defaultMode="dark" modeStorageKey="clock-on-top-settings-mode">
+    <CssVarsProvider defaultMode="dark" modeStorageKey="clock-on-top-settings-mode">
       <CssBaseline />
       <Sheet
         sx={{
@@ -251,7 +225,6 @@ function Settings() {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          fontFamily: "Inter, sans-serif",
           bgcolor: "background.sheet",
           color: "text.primary",
           overflow: "hidden",
@@ -276,7 +249,6 @@ function Settings() {
         >
           <Typography
             level="title-md"
-            sx={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
           >
             Clock Settings
           </Typography>
@@ -539,7 +511,7 @@ function Settings() {
             >
               <Stack spacing={1.5}>
                 <FormControl size="sm" sx={{ flex: 1 }}>
-                  <FormLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+                  <FormLabel>
                     Vertical
                   </FormLabel>
                   <Input
@@ -550,7 +522,7 @@ function Settings() {
                   />
                 </FormControl>
                 <FormControl size="sm" sx={{ flex: 1 }}>
-                  <FormLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+                  <FormLabel>
                     Horizontal
                   </FormLabel>
                   <Input
@@ -579,10 +551,10 @@ function Settings() {
         >
           <Button
             color="neutral"
+            variant="outlined"
             size="sm"
             fullWidth
             onClick={resetAll}
-            sx={{ fontFamily: "Inter, sans-serif" }}
           >
             Reset All to Defaults
           </Button>
