@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { CssVarsProvider, extendTheme } from "@mui/joy/styles";
+import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
@@ -89,7 +89,7 @@ function SettingRow({
             <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
               <IconButton
                 size="sm"
-                color="neutral"
+                color="warning"
                 variant="soft"
                 onClick={onReset}
                 sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
@@ -547,13 +547,14 @@ function Settings() {
             borderTop: "1px solid",
             borderColor: "divider",
             flexShrink: 0,
+            display: "flex",
+            justifyContent: "flex-end",
           }}
         >
           <Button
             color="neutral"
             variant="outlined"
             size="sm"
-            fullWidth
             onClick={resetAll}
           >
             Reset All to Defaults
