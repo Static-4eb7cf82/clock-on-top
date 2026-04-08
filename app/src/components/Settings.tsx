@@ -89,7 +89,7 @@ function SettingRow({
             <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
               <IconButton
                 size="sm"
-                color="warning"
+                color="neutral"
                 variant="soft"
                 onClick={onReset}
                 sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
@@ -102,7 +102,7 @@ function SettingRow({
       </Box>
       <Box
         sx={{
-          width: "50%",
+          width: "60%",
           ml: "auto",
           minWidth: 0,
         }}
@@ -239,8 +239,7 @@ function Settings() {
             alignItems: "center",
             justifyContent: "space-between",
             px: 2,
-            py: 1.25,
-            cursor: "default",
+            py: 2,
             userSelect: "none",
             borderBottom: "1px solid",
             borderColor: "divider",
