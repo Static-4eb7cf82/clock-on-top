@@ -3,40 +3,7 @@ import Clock from "./components/Clock";
 import Settings from "./components/Settings";
 import useTray from "./hooks/useTray";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Component, ReactNode, useMemo } from "react";
-
-class RenderErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; message: string }> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false, message: "" };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, message: error?.message ?? "Unknown render error" };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <main
-          style={{
-            width: "100vw",
-            height: "100vh",
-            padding: "16px",
-            fontFamily: "Inter, sans-serif",
-            background: "#fff",
-            color: "#111",
-          }}
-        >
-          <strong>Render error</strong>
-          <div>{this.state.message}</div>
-        </main>
-      );
-    }
-
-    return this.props.children;
-  }
-}
+import { useMemo } from "react";
 
 function ClockApp() {
   useTray();
@@ -63,11 +30,7 @@ function App() {
     }
   }, []);
 
-  return (
-    <RenderErrorBoundary>
-      {windowLabel === "settings" ? <Settings /> : <ClockApp />}
-    </RenderErrorBoundary>
-  );
+  return windowLabel === "settings" ? <Settings /> : <ClockApp />;
 }
 
 export default App;
