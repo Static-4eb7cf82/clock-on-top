@@ -5,9 +5,7 @@
   "windows": ["clock", "settings"],
   "permissions": [
     "core:default",
-    "opener:default",
     "core:window:allow-start-dragging",
-    "core:app:allow-default-window-icon",
-    "process:allow-exit"
+    "core:app:allow-default-window-icon"
   ]
 }
