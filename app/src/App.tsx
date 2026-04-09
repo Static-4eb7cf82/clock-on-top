@@ -6,9 +6,6 @@ import { useMemo } from "react";
 
 function App() {
   const windowLabel = useMemo(() => {
-    if (window.location.pathname.endsWith("/settings.html")) {
-      return "settings";
-    }
     const fromQuery = new URLSearchParams(window.location.search).get("window");
     if (fromQuery) {
       return fromQuery;

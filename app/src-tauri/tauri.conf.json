@@ -30,7 +30,7 @@
       {
         "label": "settings",
         "title": "Clock Settings",
-        "url": "settings.html",
+        "url": "index.html?window=settings",
         "visible": false,
         "width": 600,
         "height": 600,
