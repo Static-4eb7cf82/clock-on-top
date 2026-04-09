@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "label": "main",
+        "label": "clock",
         "title": "Clock On Top",
         "url": "index.html",
         "fullscreen": false,

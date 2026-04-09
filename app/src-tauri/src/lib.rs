@@ -106,8 +106,8 @@ pub fn run() {
         ])
         .setup(|app| {
             let window = app
-                .get_webview_window("main")
-                .expect("main window not found");
+                .get_webview_window("clock")
+                .expect("clock window not found");
 
             window.center()?;
 

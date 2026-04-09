@@ -16,7 +16,7 @@ function App() {
     try {
       return getCurrentWindow().label;
     } catch {
-      return "main";
+      return "clock";
     }
   }, []);
 
