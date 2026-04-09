@@ -109,12 +109,6 @@ pub fn run() {
                 .get_webview_window("main")
                 .expect("main window not found");
 
-            window.set_always_on_top(true)?;
-            window.set_decorations(false)?;
-            window.set_fullscreen(false)?;
-            window.set_resizable(false)?;
-            window.set_skip_taskbar(true)?;
-            window.set_ignore_cursor_events(false)?;
             window.center()?;
 
             Ok(())
