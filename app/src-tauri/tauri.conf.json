@@ -71,7 +71,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY2MjY5OUFDOEFDREZBMzcKUldRMytzMktySmttOXJFTzQrZU1xZHJ5VC9id3BVUSsyMy96Z2IzRWNMcjJIb2RuMjVsMzFPcEEK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlFMEQyMUY1NjgzNDE2NkEKUldScUZqUm85U0VObmtzRHpLOHVRdDhDRGFJaWo2MFVjYzNWRVRORHNnNjZRNlFjaGwrbGdXdTIK",
       "endpoints": [
         "https://github.com/static-4eb7cf82/clock-on-top/releases/latest/download/latest.json"
       ],
