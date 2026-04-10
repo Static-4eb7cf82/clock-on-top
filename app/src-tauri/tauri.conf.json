@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Clock On Top",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "identifier": "com.static-4eb7cf82.clock-on-top",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -15,6 +15,7 @@
         "label": "clock",
         "title": "Clock On Top",
         "url": "index.html",
+        "visible": false,
         "fullscreen": false,
         "width": 50,
         "height": 50,
