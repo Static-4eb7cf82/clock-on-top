@@ -15,6 +15,7 @@
         "label": "clock",
         "title": "Clock On Top",
         "url": "index.html",
+        "visible": false,
         "fullscreen": false,
         "width": 50,
         "height": 50,

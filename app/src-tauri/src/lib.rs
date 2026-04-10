@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::Emitter;
 use tauri::Manager;
+use tauri_plugin_updater::UpdaterExt;
 
 // ── Settings type ─────────────────────────────────────────────────────────────
 
@@ -109,7 +110,6 @@ fn close_about_window(window: tauri::WebviewWindow) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
@@ -127,6 +127,55 @@ pub fn run() {
                 .expect("clock window not found");
 
             window.center()?;
+
+            let app_handle = app.handle().clone();
+            let app_version = app_handle.package_info().version.to_string();
+            tauri::async_runtime::spawn(async move {
+                println!("Current app version: {app_version}");
+                println!("Checking for update");
+
+                match app_handle.updater() {
+                    Ok(updater) => match updater.check().await {
+                        Ok(Some(update)) => {
+                            println!(
+                                "Update found. Downloading and installing new version {}",
+                                update.version
+                            );
+
+                            if let Err(error) = update.download_and_install(|_, _| {}, || {}).await
+                            {
+                                println!("ERROR Automatic update install failed: {error}");
+                                println!("Starting app without updating");
+                                if let Some(clock_window) = app_handle.get_webview_window("clock") {
+                                    let _ = clock_window.show();
+                                }
+                                return;
+                            }
+
+                            println!("Restarting");
+                            app_handle.restart();
+                        }
+                        Ok(None) => {
+                            println!("No update found, starting app normally");
+                            if let Some(clock_window) = app_handle.get_webview_window("clock") {
+                                let _ = clock_window.show();
+                            }
+                        }
+                        Err(error) => {
+                            println!("ERROR Automatic update check failed: {error}");
+                            if let Some(clock_window) = app_handle.get_webview_window("clock") {
+                                let _ = clock_window.show();
+                            }
+                        }
+                    },
+                    Err(error) => {
+                        println!("ERROR Failed to initialize updater: {error}");
+                        if let Some(clock_window) = app_handle.get_webview_window("clock") {
+                            let _ = clock_window.show();
+                        }
+                    }
+                }
+            });
 
             // ── System tray ───────────────────────────────────────────────────
             let about_clock_item =
