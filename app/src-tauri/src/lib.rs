@@ -96,7 +96,7 @@ fn close_settings_window(window: tauri::WebviewWindow) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             resize_window,
             read_settings,
@@ -115,8 +115,7 @@ pub fn run() {
             let settings_item =
                 tauri::menu::MenuItemBuilder::with_id("settings", "Settings").build(app)?;
             let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
-            let quit_item =
-                tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+            let quit_item = tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
             let menu = tauri::menu::MenuBuilder::new(app)
                 .item(&settings_item)
                 .item(&separator)
