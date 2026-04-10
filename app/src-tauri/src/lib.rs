@@ -40,14 +40,30 @@ impl Default for ClockSettings {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase", default)]
+struct GeneralSettings {
+    enable_automatic_updates: bool,
+}
+
+impl Default for GeneralSettings {
+    fn default() -> Self {
+        GeneralSettings {
+            enable_automatic_updates: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase", default)]
 struct SettingsFile {
     clock: ClockSettings,
+    general: GeneralSettings,
 }
 
 impl Default for SettingsFile {
     fn default() -> Self {
         SettingsFile {
             clock: ClockSettings::default(),
+            general: GeneralSettings::default(),
         }
     }
 }
@@ -58,6 +74,110 @@ fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         .parent()
         .ok_or_else(|| "Cannot determine AppData\\Roaming directory".to_string())?;
     Ok(roaming.join("Clock On Top").join("settings.json"))
+}
+
+async fn check_for_updates(app_handle: tauri::AppHandle, enable_automatic_updates: bool) -> bool {
+    let app_version = app_handle.package_info().version.to_string();
+    println!("Current app version: {app_version}");
+
+    if !enable_automatic_updates {
+        println!("Automatic updates are not enabled; not checking if update is available");
+        return false;
+    }
+
+    println!("Checking for update");
+
+    let updater = match app_handle.updater() {
+        Ok(updater) => updater,
+        Err(error) => {
+            println!("ERROR Failed to initialize updater: {error}");
+            return false;
+        }
+    };
+
+    let update = match updater.check().await {
+        Ok(update) => update,
+        Err(error) => {
+            println!("ERROR Automatic update check failed: {error}");
+            return false;
+        }
+    };
+
+    let Some(update) = update else {
+        println!("No update found, starting app normally");
+        return false;
+    };
+
+    println!(
+        "Update found. Downloading and installing new version {}",
+        update.version
+    );
+
+    if let Err(error) = update.download_and_install(|_, _| {}, || {}).await {
+        println!("ERROR Automatic update install failed: {error}");
+        return false;
+    }
+
+    println!("Restarting");
+    tauri::async_runtime::spawn(async move {
+        app_handle.restart();
+    });
+    true
+}
+
+fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
+    let about_clock_item =
+        tauri::menu::MenuItemBuilder::with_id("about_window", "About Clock On Top...")
+            .build(app)?;
+    let report_bug_item =
+        tauri::menu::MenuItemBuilder::with_id("report_bug", "Report a Bug...").build(app)?;
+    let more_submenu = tauri::menu::SubmenuBuilder::new(app, "More")
+        .item(&about_clock_item)
+        .item(&report_bug_item)
+        .build()?;
+    let settings_item = tauri::menu::MenuItemBuilder::with_id("settings", "Settings").build(app)?;
+    let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
+    let quit_item = tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+    let menu = tauri::menu::MenuBuilder::new(app)
+        .item(&settings_item)
+        .item(&separator)
+        .item(&more_submenu)
+        .item(&separator)
+        .item(&quit_item)
+        .build()?;
+
+    tauri::tray::TrayIconBuilder::new()
+        .menu(&menu)
+        .icon(tauri::include_image!("icons/32x32.png"))
+        .tooltip("Clock On Top")
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            "settings" => {
+                if let Some(w) = app.get_webview_window("settings") {
+                    let _ = w.show();
+                    let _ = w.set_focus();
+                }
+            }
+            "about_window" => {
+                if let Some(w) = app.get_webview_window("about") {
+                    let _ = w.show();
+                    let _ = w.set_focus();
+                }
+            }
+            "report_bug" => {
+                use tauri_plugin_opener::OpenerExt;
+                let _ = app.opener().open_url(
+                    "https://github.com/Static-4eb7cf82/clock-on-top/issues",
+                    None::<&str>,
+                );
+            }
+            "quit" => {
+                app.exit(0);
+            }
+            _ => {}
+        })
+        .build(app)?;
+
+    Ok(())
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────
@@ -87,6 +207,7 @@ fn read_settings(app: tauri::AppHandle) -> Result<SettingsFile, String> {
         serde_json::from_str::<ClockSettings>(&content).map_err(|e| e.to_string())?;
     Ok(SettingsFile {
         clock: legacy_clock,
+        ..SettingsFile::default()
     })
 }
 
@@ -148,114 +269,25 @@ pub fn run() {
             close_about_window,
         ])
         .setup(|app| {
-            let window = app
-                .get_webview_window("clock")
-                .expect("clock window not found");
-
-            window.center()?;
+            let settings = read_settings(app.handle().clone()).unwrap_or_else(|error| {
+                println!("ERROR Failed to read settings, using defaults: {error}");
+                SettingsFile::default()
+            });
+            let enable_automatic_updates = settings.general.enable_automatic_updates;
 
             let app_handle = app.handle().clone();
-            let app_version = app_handle.package_info().version.to_string();
             tauri::async_runtime::spawn(async move {
-                println!("Current app version: {app_version}");
-                println!("Checking for update");
-
-                match app_handle.updater() {
-                    Ok(updater) => match updater.check().await {
-                        Ok(Some(update)) => {
-                            println!(
-                                "Update found. Downloading and installing new version {}",
-                                update.version
-                            );
-
-                            if let Err(error) = update.download_and_install(|_, _| {}, || {}).await
-                            {
-                                println!("ERROR Automatic update install failed: {error}");
-                                println!("Starting app without updating");
-                                if let Some(clock_window) = app_handle.get_webview_window("clock") {
-                                    let _ = clock_window.show();
-                                }
-                                return;
-                            }
-
-                            println!("Restarting");
-                            app_handle.restart();
-                        }
-                        Ok(None) => {
-                            println!("No update found, starting app normally");
-                            if let Some(clock_window) = app_handle.get_webview_window("clock") {
-                                let _ = clock_window.show();
-                            }
-                        }
-                        Err(error) => {
-                            println!("ERROR Automatic update check failed: {error}");
-                            if let Some(clock_window) = app_handle.get_webview_window("clock") {
-                                let _ = clock_window.show();
-                            }
-                        }
-                    },
-                    Err(error) => {
-                        println!("ERROR Failed to initialize updater: {error}");
-                        if let Some(clock_window) = app_handle.get_webview_window("clock") {
-                            let _ = clock_window.show();
-                        }
+                let performing_update =
+                    check_for_updates(app_handle.clone(), enable_automatic_updates).await;
+                if !performing_update {
+                    if let Some(clock_window) = app_handle.get_webview_window("clock") {
+                        let _ = clock_window.center();
+                        let _ = clock_window.show();
                     }
                 }
             });
 
-            // ── System tray ───────────────────────────────────────────────────
-            let about_clock_item =
-                tauri::menu::MenuItemBuilder::with_id("about_window", "About Clock On Top...")
-                    .build(app)?;
-            let report_bug_item =
-                tauri::menu::MenuItemBuilder::with_id("report_bug", "Report a Bug...")
-                    .build(app)?;
-            let more_submenu = tauri::menu::SubmenuBuilder::new(app, "More")
-                .item(&about_clock_item)
-                .item(&report_bug_item)
-                .build()?;
-            let settings_item =
-                tauri::menu::MenuItemBuilder::with_id("settings", "Settings").build(app)?;
-            let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
-            let quit_item = tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
-            let menu = tauri::menu::MenuBuilder::new(app)
-                .item(&settings_item)
-                .item(&separator)
-                .item(&more_submenu)
-                .item(&separator)
-                .item(&quit_item)
-                .build()?;
-
-            tauri::tray::TrayIconBuilder::new()
-                .menu(&menu)
-                .icon(tauri::include_image!("icons/32x32.png"))
-                .tooltip("Clock On Top")
-                .on_menu_event(|app, event| match event.id().as_ref() {
-                    "settings" => {
-                        if let Some(w) = app.get_webview_window("settings") {
-                            let _ = w.show();
-                            let _ = w.set_focus();
-                        }
-                    }
-                    "about_window" => {
-                        if let Some(w) = app.get_webview_window("about") {
-                            let _ = w.show();
-                            let _ = w.set_focus();
-                        }
-                    }
-                    "report_bug" => {
-                        use tauri_plugin_opener::OpenerExt;
-                        let _ = app.opener().open_url(
-                            "https://github.com/Static-4eb7cf82/clock-on-top/issues",
-                            None::<&str>,
-                        );
-                    }
-                    "quit" => {
-                        app.exit(0);
-                    }
-                    _ => {}
-                })
-                .build(app)?;
+            setup_system_tray(app)?;
 
             Ok(())
         })

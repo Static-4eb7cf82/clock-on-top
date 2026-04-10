@@ -11,8 +11,13 @@ export interface ClockSettings {
   paddingHorizontal: string;
 }
 
+export interface GeneralSettings {
+  enableAutomaticUpdates: boolean;
+}
+
 export interface SettingsFile {
   clock: ClockSettings;
+  general: GeneralSettings;
 }
 
 export const CLOCK_DEFAULTS: ClockSettings = {
@@ -28,8 +33,13 @@ export const CLOCK_DEFAULTS: ClockSettings = {
   paddingHorizontal: "0.2em",
 };
 
+export const GENERAL_DEFAULTS: GeneralSettings = {
+  enableAutomaticUpdates: true,
+};
+
 export const DEFAULT_SETTINGS_FILE: SettingsFile = {
   clock: CLOCK_DEFAULTS,
+  general: GENERAL_DEFAULTS,
 };
 
 export function hexToRgba(hex: string, alpha: number): string {
