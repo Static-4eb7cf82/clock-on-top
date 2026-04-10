@@ -135,7 +135,7 @@ pub fn run() {
             let report_bug_item =
                 tauri::menu::MenuItemBuilder::with_id("report_bug", "Report a Bug...")
                     .build(app)?;
-            let about_submenu = tauri::menu::SubmenuBuilder::new(app, "About")
+            let more_submenu = tauri::menu::SubmenuBuilder::new(app, "More")
                 .item(&about_clock_item)
                 .item(&report_bug_item)
                 .build()?;
@@ -144,8 +144,9 @@ pub fn run() {
             let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
             let quit_item = tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
             let menu = tauri::menu::MenuBuilder::new(app)
-                .item(&about_submenu)
                 .item(&settings_item)
+                .item(&separator)
+                .item(&more_submenu)
                 .item(&separator)
                 .item(&quit_item)
                 .build()?;
