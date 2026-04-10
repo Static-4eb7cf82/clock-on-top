@@ -68,12 +68,9 @@ impl Default for SettingsFile {
     }
 }
 
-fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let base = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    let roaming = base
-        .parent()
-        .ok_or_else(|| "Cannot determine AppData\\Roaming directory".to_string())?;
-    Ok(roaming.join("Clock On Top").join("settings.json"))
+fn settings_path(_app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let home_dir = dirs::home_dir().ok_or_else(|| "Cannot determine home directory".to_string())?;
+    Ok(home_dir.join(".clockontop").join("settings.json"))
 }
 
 async fn check_for_updates(app_handle: tauri::AppHandle, enable_automatic_updates: bool) -> bool {
