@@ -1,6 +1,7 @@
 import "./App.css";
 import Clock from "./components/Clock";
 import Settings from "./components/Settings";
+import About from "./components/About";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useMemo, useRef } from "react";
 import { check } from "@tauri-apps/plugin-updater";
@@ -63,7 +64,9 @@ function App() {
     };
   }, [windowLabel]);
 
-  return windowLabel === "settings" ? <Settings /> : <Clock />;
+  if (windowLabel === "settings") return <Settings />;
+  if (windowLabel === "about") return <About />;
+  return <Clock />;
 }
 
 export default App;

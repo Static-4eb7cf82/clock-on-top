@@ -2,11 +2,12 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["clock", "settings"],
+  "windows": ["clock", "settings", "about"],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
     "core:app:allow-default-window-icon",
-    "updater:default"
+    "updater:default",
+    "opener:default"
   ]
 }
