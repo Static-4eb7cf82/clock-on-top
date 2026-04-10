@@ -15,7 +15,7 @@ import BugReportIcon from "@mui/icons-material/BugReport";
 
 const GITHUB_URL = "https://github.com/Static-4eb7cf82/clock-on-top";
 const ISSUES_URL = "https://github.com/Static-4eb7cf82/clock-on-top/issues";
-const VERSION = "0.5.0";
+const VERSION = "0.6.0";
 
 function About() {
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
