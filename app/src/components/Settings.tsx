@@ -501,7 +501,7 @@ function Settings() {
               <Input
                 size="sm"
                 value={local.textShadow}
-                placeholder="e.g. 1px 1px 3px rgba(0,0,0,0.9)"
+                placeholder="e.g. 1px 1px 3px rgba(0,0,0,0.5)"
                 onChange={(e) => update({ textShadow: e.target.value })}
               />
             </SettingRow>

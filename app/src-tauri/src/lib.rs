@@ -31,7 +31,7 @@ impl Default for ClockSettings {
             background_color: "#000000".to_string(),
             background_opacity: 0.2,
             border_radius: 8.0,
-            text_shadow: "1px 1px 3px rgba(0,0,0,0.9)".to_string(),
+            text_shadow: "1px 1px 3px rgba(0,0,0,0.5)".to_string(),
             padding_vertical: "0em".to_string(),
             padding_horizontal: "0.2em".to_string(),
         }
@@ -55,15 +55,15 @@ impl Default for GeneralSettings {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 struct SettingsFile {
-    clock: ClockSettings,
     general: GeneralSettings,
+    clock: ClockSettings,
 }
 
 impl Default for SettingsFile {
     fn default() -> Self {
         SettingsFile {
-            clock: ClockSettings::default(),
             general: GeneralSettings::default(),
+            clock: ClockSettings::default(),
         }
     }
 }

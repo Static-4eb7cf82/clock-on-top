@@ -16,8 +16,8 @@ export interface GeneralSettings {
 }
 
 export interface SettingsFile {
-  clock: ClockSettings;
   general: GeneralSettings;
+  clock: ClockSettings;
 }
 
 export const CLOCK_DEFAULTS: ClockSettings = {
@@ -28,7 +28,7 @@ export const CLOCK_DEFAULTS: ClockSettings = {
   backgroundColor: "#000000",
   backgroundOpacity: 0.2,
   borderRadius: 8,
-  textShadow: "1px 1px 3px rgba(0,0,0,0.9)",
+  textShadow: "1px 1px 3px rgba(0,0,0,0.5)",
   paddingVertical: "0em",
   paddingHorizontal: "0.2em",
 };
