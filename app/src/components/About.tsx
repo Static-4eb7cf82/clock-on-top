@@ -9,7 +9,6 @@ import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
 import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
-import Divider from "@mui/joy/Divider";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import BugReportIcon from "@mui/icons-material/BugReport";
@@ -36,6 +35,7 @@ function About() {
     >
       <CssBaseline />
       <Sheet
+        variant="plain"
         sx={{
           width: "100vw",
           height: "100vh",
@@ -53,16 +53,14 @@ function About() {
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            px: 2,
-            py: 2,
+            justifyContent: "flex-end",
+            px: 1,
+            py: 1,
             userSelect: "none",
-            borderBottom: "1px solid",
             borderColor: "divider",
             flexShrink: 0,
           }}
         >
-          <Typography level="title-md">About Clock On Top</Typography>
           <IconButton
             size="sm"
             color="neutral"
@@ -78,35 +76,37 @@ function About() {
         <Box
           sx={{
             flex: 1,
+            width: "300px",
+            alignSelf: "center",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "flex-start",
             px: 3,
             pb: 3,
-            pt: 2,
+            pt: 0,
           }}
         >
           {/* App icon + name */}
           <Box
             sx={{
               display: "flex",
-              flexDirection: "column",
+              flexDirection: "row",
               alignItems: "center",
               gap: 1.5,
-              mb: 3,
+              mb: 2,
             }}
           >
             <img
               src="/app-icon.png"
               alt="Clock On Top"
-              style={{ width: 56, height: 56 }}
+              style={{ width: 36, height: 36 }}
             />
             <Typography level="h3">Clock On Top</Typography>
           </Box>
 
           {/* Metadata */}
-          <Stack spacing={0.5} alignItems="center" sx={{ mb: 3 }}>
+          <Stack spacing={0.3} alignItems="flex-start" sx={{ mb: 5 }}>
             <Typography level="body-sm" textColor="text.secondary">
               Created by Static-4eb7cf82
             </Typography>
@@ -114,28 +114,26 @@ function About() {
               License: MIT
             </Typography>
             <Typography level="body-sm" textColor="text.secondary">
-              Version {VERSION}
+              Version: {VERSION}
             </Typography>
           </Stack>
 
-          <Divider sx={{ width: "60%", mb: 3 }} />
-
           {/* Action buttons */}
-          <Stack direction="row" spacing={1.5} justifyContent="center">
+          <Stack direction="column" spacing={1} justifyContent="center" width="100%">
             <Button
-              variant="outlined"
+              variant="plain"
               color="neutral"
               size="sm"
-              startDecorator={<GitHubIcon sx={{ fontSize: 16 }} />}
+              endDecorator={<GitHubIcon />}
               onClick={() => openUrl(GITHUB_URL).catch(console.error)}
             >
               GitHub
             </Button>
             <Button
-              variant="outlined"
+              variant="plain"
               color="neutral"
               size="sm"
-              startDecorator={<BugReportIcon sx={{ fontSize: 16 }} />}
+              endDecorator={<BugReportIcon />}
               onClick={() => openUrl(ISSUES_URL).catch(console.error)}
             >
               Report a Bug
