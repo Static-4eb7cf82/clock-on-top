@@ -106,16 +106,40 @@ pub fn run() {
         ])
         .setup(|app| {
             let window = app
-                .get_webview_window("main")
-                .expect("main window not found");
+                .get_webview_window("clock")
+                .expect("clock window not found");
 
-            window.set_always_on_top(true)?;
-            window.set_decorations(false)?;
-            window.set_fullscreen(false)?;
-            window.set_resizable(false)?;
-            window.set_skip_taskbar(true)?;
-            window.set_ignore_cursor_events(false)?;
             window.center()?;
+
+            // ── System tray ───────────────────────────────────────────────────
+            let settings_item =
+                tauri::menu::MenuItemBuilder::with_id("settings", "Settings").build(app)?;
+            let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
+            let quit_item =
+                tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+            let menu = tauri::menu::MenuBuilder::new(app)
+                .item(&settings_item)
+                .item(&separator)
+                .item(&quit_item)
+                .build()?;
+
+            tauri::tray::TrayIconBuilder::new()
+                .menu(&menu)
+                .icon(tauri::include_image!("icons/32x32.png"))
+                .tooltip("Clock On Top")
+                .on_menu_event(|app, event| match event.id().as_ref() {
+                    "settings" => {
+                        if let Some(w) = app.get_webview_window("settings") {
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                    }
+                    "quit" => {
+                        app.exit(0);
+                    }
+                    _ => {}
+                })
+                .build(app)?;
 
             Ok(())
         })

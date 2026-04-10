@@ -26,14 +26,6 @@ body {
   /* background-color: rgba(0, 0, 0, 0.1); */
 }
 
-.overlay {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
 .clock {
   font-weight: 600;
   letter-spacing: 0.08em;

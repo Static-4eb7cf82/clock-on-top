@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "label": "main",
+        "label": "clock",
         "title": "Clock On Top",
         "url": "index.html",
         "fullscreen": false,
@@ -22,12 +22,15 @@
         "decorations": false,
         "shadow": false,
         "resizable": false,
-        "alwaysOnTop": true
+        "maximizable": false,
+        "minimizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true
       },
       {
         "label": "settings",
         "title": "Clock Settings",
-        "url": "settings.html",
+        "url": "index.html",
         "visible": false,
         "width": 600,
         "height": 600,
@@ -35,6 +38,8 @@
         "decorations": false,
         "shadow": true,
         "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
         "alwaysOnTop": false,
         "skipTaskbar": false,
         "center": true
