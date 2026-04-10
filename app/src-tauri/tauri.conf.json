@@ -43,6 +43,23 @@
         "alwaysOnTop": false,
         "skipTaskbar": false,
         "center": true
+      },
+      {
+        "label": "about",
+        "title": "About Clock On Top",
+        "url": "index.html",
+        "visible": false,
+        "width": 420,
+        "height": 420,
+        "transparent": false,
+        "decorations": false,
+        "shadow": true,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "center": true
       }
     ],
     "security": {

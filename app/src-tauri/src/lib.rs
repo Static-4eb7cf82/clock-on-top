@@ -90,6 +90,20 @@ fn close_settings_window(window: tauri::WebviewWindow) -> Result<(), String> {
     window.hide().map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("about")
+        .ok_or_else(|| "about window not found".to_string())?;
+    window.show().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn close_about_window(window: tauri::WebviewWindow) -> Result<(), String> {
+    window.hide().map_err(|e| e.to_string())
+}
+
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -97,12 +111,15 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             resize_window,
             read_settings,
             write_settings,
             open_settings_window,
             close_settings_window,
+            open_about_window,
+            close_about_window,
         ])
         .setup(|app| {
             let window = app
@@ -112,11 +129,22 @@ pub fn run() {
             window.center()?;
 
             // ── System tray ───────────────────────────────────────────────────
+            let about_clock_item =
+                tauri::menu::MenuItemBuilder::with_id("about_window", "About Clock On Top...")
+                    .build(app)?;
+            let report_bug_item =
+                tauri::menu::MenuItemBuilder::with_id("report_bug", "Report a Bug...")
+                    .build(app)?;
+            let about_submenu = tauri::menu::SubmenuBuilder::new(app, "About")
+                .item(&about_clock_item)
+                .item(&report_bug_item)
+                .build()?;
             let settings_item =
                 tauri::menu::MenuItemBuilder::with_id("settings", "Settings").build(app)?;
             let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
             let quit_item = tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
             let menu = tauri::menu::MenuBuilder::new(app)
+                .item(&about_submenu)
                 .item(&settings_item)
                 .item(&separator)
                 .item(&quit_item)
@@ -132,6 +160,19 @@ pub fn run() {
                             let _ = w.show();
                             let _ = w.set_focus();
                         }
+                    }
+                    "about_window" => {
+                        if let Some(w) = app.get_webview_window("about") {
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                    }
+                    "report_bug" => {
+                        use tauri_plugin_opener::OpenerExt;
+                        let _ = app.opener().open_url(
+                            "https://github.com/Static-4eb7cf82/clock-on-top/issues",
+                            None::<&str>,
+                        );
                     }
                     "quit" => {
                         app.exit(0);
