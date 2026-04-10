@@ -38,6 +38,20 @@ impl Default for ClockSettings {
     }
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+struct SettingsFile {
+    clock: ClockSettings,
+}
+
+impl Default for SettingsFile {
+    fn default() -> Self {
+        SettingsFile {
+            clock: ClockSettings::default(),
+        }
+    }
+}
+
 fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let base = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let roaming = base
@@ -56,21 +70,33 @@ fn resize_window(window: tauri::WebviewWindow, width: f64, height: f64) -> Resul
 }
 
 #[tauri::command]
-fn read_settings(app: tauri::AppHandle) -> Result<ClockSettings, String> {
+fn read_settings(app: tauri::AppHandle) -> Result<SettingsFile, String> {
     let path = settings_path(&app)?;
     if !path.exists() {
-        return Ok(ClockSettings::default());
+        return Ok(SettingsFile::default());
     }
     let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
-    serde_json::from_str(&content).map_err(|e| e.to_string())
+
+    // Preferred format: full settings file object.
+    if let Ok(settings) = serde_json::from_str::<SettingsFile>(&content) {
+        return Ok(settings);
+    }
+
+    // Backward compatibility: legacy format with ClockSettings at the top level.
+    let legacy_clock =
+        serde_json::from_str::<ClockSettings>(&content).map_err(|e| e.to_string())?;
+    Ok(SettingsFile {
+        clock: legacy_clock,
+    })
 }
 
 #[tauri::command]
-fn write_settings(app: tauri::AppHandle, settings: ClockSettings) -> Result<(), String> {
+fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), String> {
     let path = settings_path(&app)?;
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
+
     let content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(&path, content).map_err(|e| e.to_string())?;
     app.emit("settings-updated", &settings)

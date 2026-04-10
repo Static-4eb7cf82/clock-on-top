@@ -11,7 +11,11 @@ export interface ClockSettings {
   paddingHorizontal: string;
 }
 
-export const DEFAULTS: ClockSettings = {
+export interface SettingsFile {
+  clock: ClockSettings;
+}
+
+export const CLOCK_DEFAULTS: ClockSettings = {
   fontFamily: "Space Grotesk",
   fontSize: 26,
   foregroundColor: "#ffffff",
@@ -22,6 +26,10 @@ export const DEFAULTS: ClockSettings = {
   textShadow: "1px 1px 3px rgba(0,0,0,0.9)",
   paddingVertical: "0em",
   paddingHorizontal: "0.2em",
+};
+
+export const DEFAULT_SETTINGS_FILE: SettingsFile = {
+  clock: CLOCK_DEFAULTS,
 };
 
 export function hexToRgba(hex: string, alpha: number): string {

@@ -19,7 +19,12 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import { ClockSettings, DEFAULTS } from "../settings";
+import {
+  ClockSettings,
+  DEFAULT_SETTINGS_FILE,
+  CLOCK_DEFAULTS,
+  SettingsFile,
+} from "../settings";
 
 const sliderSlotSx = {
   flex: 1,
@@ -169,11 +174,13 @@ function ColorRow({
 // ── Main component ────────────────────────────────────────────────────────────
 
 function Settings() {
-  const [local, setLocal] = useState<ClockSettings>(DEFAULTS);
+  const [local, setLocal] = useState<ClockSettings>(CLOCK_DEFAULTS);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
-    invoke<ClockSettings>("read_settings").then(setLocal).catch(console.error);
+    invoke<SettingsFile>("read_settings")
+      .then((next) => setLocal(next.clock))
+      .catch(console.error);
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
@@ -182,7 +189,9 @@ function Settings() {
   const save = (next: ClockSettings) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      invoke("write_settings", { settings: next }).catch(console.error);
+      invoke("write_settings", {
+        settings: { ...DEFAULT_SETTINGS_FILE, clock: next },
+      }).catch(console.error);
     }, 300);
   };
 
@@ -195,15 +204,17 @@ function Settings() {
   };
 
   const resetOne = <K extends keyof ClockSettings>(key: K) =>
-    update({ [key]: DEFAULTS[key] });
+    update({ [key]: CLOCK_DEFAULTS[key] });
 
   const isDiff = <K extends keyof ClockSettings>(key: K) =>
-    local[key] !== DEFAULTS[key];
+    local[key] !== CLOCK_DEFAULTS[key];
 
   const resetAll = () => {
-    setLocal(DEFAULTS);
+    setLocal(CLOCK_DEFAULTS);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    invoke("write_settings", { settings: DEFAULTS }).catch(console.error);
+    invoke("write_settings", { settings: DEFAULT_SETTINGS_FILE }).catch(
+      console.error,
+    );
   };
 
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
@@ -364,8 +375,8 @@ function Settings() {
               isDirty={isDiff("foregroundColor") || isDiff("foregroundOpacity")}
               onReset={() =>
                 update({
-                  foregroundColor: DEFAULTS.foregroundColor,
-                  foregroundOpacity: DEFAULTS.foregroundOpacity,
+                  foregroundColor: CLOCK_DEFAULTS.foregroundColor,
+                  foregroundOpacity: CLOCK_DEFAULTS.foregroundOpacity,
                 })
               }
             >
@@ -387,8 +398,8 @@ function Settings() {
               }
               onReset={() =>
                 update({
-                  backgroundColor: DEFAULTS.backgroundColor,
-                  backgroundOpacity: DEFAULTS.backgroundOpacity,
+                  backgroundColor: CLOCK_DEFAULTS.backgroundColor,
+                  backgroundOpacity: CLOCK_DEFAULTS.backgroundOpacity,
                 })
               }
             >
@@ -503,8 +514,8 @@ function Settings() {
               isDirty={isDiff("paddingVertical") || isDiff("paddingHorizontal")}
               onReset={() =>
                 update({
-                  paddingVertical: DEFAULTS.paddingVertical,
-                  paddingHorizontal: DEFAULTS.paddingHorizontal,
+                  paddingVertical: CLOCK_DEFAULTS.paddingVertical,
+                  paddingHorizontal: CLOCK_DEFAULTS.paddingHorizontal,
                 })
               }
             >
