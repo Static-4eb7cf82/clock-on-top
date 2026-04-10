@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { CssVarsProvider } from "@mui/joy/styles";
@@ -15,9 +17,28 @@ import BugReportIcon from "@mui/icons-material/BugReport";
 
 const GITHUB_URL = "https://github.com/Static-4eb7cf82/clock-on-top";
 const ISSUES_URL = "https://github.com/Static-4eb7cf82/clock-on-top/issues";
-const VERSION = "0.6.0";
 
 function About() {
+  const [version, setVersion] = useState("-");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getVersion()
+      .then((appVersion) => {
+        if (isMounted) {
+          setVersion(appVersion);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to read app version:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
     if (e.button === 0) {
       try {
@@ -114,7 +135,7 @@ function About() {
               License: MIT
             </Typography>
             <Typography level="body-sm" textColor="text.secondary">
-              Version: {VERSION}
+              Version: {version}
             </Typography>
           </Stack>
 
