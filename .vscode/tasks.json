@@ -11,6 +11,26 @@
             },
             "command": "npm run tauri dev",
             "problemMatcher": []
+        },
+        {
+            "label": "Version Bump",
+            "type": "shell",
+            "command": "npm run version-bump ${input:versionString}",
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "versionString",
+            "type": "promptString",
+            "description": "Enter new version (e.g. 1.2.3)",
+            "default": ""
         }
     ]
 }
