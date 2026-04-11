@@ -232,7 +232,7 @@ function ClockStyleSectionSettings({
               <Tooltip
                 size="md"
                 placement="top"
-                variant="soft"
+                variant="outlined"
                 title={
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <Typography level="body-sm" sx={{ color: "text.primary" }}>
@@ -244,7 +244,7 @@ function ClockStyleSectionSettings({
                       href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-shadow"
                       target="_blank"
                       rel="noopener noreferrer"
-                      variant="plain"
+                      variant="soft"
                       color="neutral"
                       sx={{ minWidth: 22, minHeight: 22, width: 22, height: 22 }}
                     >
