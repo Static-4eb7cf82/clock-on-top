@@ -108,7 +108,7 @@ function ClockStyleSectionSettings({
               value={local.fontFamily}
               onChange={(e) => update({ fontFamily: e.target.value })}
               placeholder="e.g. Space Grotesk"
-              sx={{ fontFamily: `${local.fontFamily}, sans-serif` }}
+              sx={{ fontFamily: `${local.fontFamily}, sans-serif`, backgroundColor: "background.level1" }}
             />
           </SettingRow>
 
@@ -278,6 +278,7 @@ function ClockStyleSectionSettings({
               value={local.textShadow}
               placeholder="e.g. 1px 1px 3px rgba(0,0,0,0.5)"
               onChange={(e) => update({ textShadow: e.target.value })}
+              sx={{ backgroundColor: "background.level1" }}
             />
           </SettingRow>
 
@@ -301,6 +302,7 @@ function ClockStyleSectionSettings({
                   value={local.paddingVertical}
                   placeholder="0em"
                   onChange={(e) => update({ paddingVertical: e.target.value })}
+                  sx={{ backgroundColor: "background.level1" }}
                 />
               </FormControl>
               <FormControl size="sm" sx={{ flex: 1 }}>
@@ -310,6 +312,7 @@ function ClockStyleSectionSettings({
                   value={local.paddingHorizontal}
                   placeholder="0.2em"
                   onChange={(e) => update({ paddingHorizontal: e.target.value })}
+                  sx={{ backgroundColor: "background.level1" }}
                 />
               </FormControl>
             </Stack>
