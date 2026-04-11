@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { getVersion } from "@tauri-apps/api/app";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
-import IconButton from "@mui/joy/IconButton";
 import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import BugReportIcon from "@mui/icons-material/BugReport";
+import WindowTitleBar from "./WindowTitleBar";
 
 const GITHUB_URL = "https://github.com/Static-4eb7cf82/clock-on-top";
 const ISSUES_URL = "https://github.com/Static-4eb7cf82/clock-on-top/issues";
@@ -39,16 +36,6 @@ function About() {
     };
   }, []);
 
-  const handleTitleBarMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 0) {
-      try {
-        getCurrentWindow().startDragging().catch(console.error);
-      } catch (err) {
-        console.error("Failed to start dragging:", err);
-      }
-    }
-  };
-
   return (
     <CssVarsProvider
       defaultMode="dark"
@@ -68,30 +55,11 @@ function About() {
           borderRadius: 0,
         }}
       >
-        {/* ── Title bar ── */}
-        <Box
-          onMouseDown={handleTitleBarMouseDown}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            px: 1,
-            py: 1,
-            userSelect: "none",
-            borderColor: "divider",
-            flexShrink: 0,
-          }}
-        >
-          <IconButton
-            size="sm"
-            color="neutral"
-            onMouseDown={(e) => e.stopPropagation()}
-            variant="plain"
-            onClick={() => invoke("close_about_window").catch(console.error)}
-          >
-            <CloseRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Box>
+        <WindowTitleBar
+          title="About"
+          closeCommand="close_about_window"
+          closeButtonVariant="soft"
+        />
 
         {/* ── Content ── */}
         <Box

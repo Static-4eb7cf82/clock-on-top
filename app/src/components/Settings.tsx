@@ -1,19 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
-import IconButton from "@mui/joy/IconButton";
 import Button from "@mui/joy/Button";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
 import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile } from "../settings";
 import ClockStyleSectionSettings from "./ClockStyleSectionSettings";
 import GeneralSectionSettings from "./GeneralSectionSettings";
+import WindowTitleBar from "./WindowTitleBar";
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -82,16 +80,6 @@ function Settings() {
     );
   };
 
-  const handleTitleBarMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 0) {
-      try {
-        getCurrentWindow().startDragging().catch(console.error);
-      } catch (err) {
-        console.error("Failed to start dragging:", err);
-      }
-    }
-  };
-
   return (
     <CssVarsProvider defaultMode="dark" modeStorageKey="clock-on-top-settings-mode">
       <CssBaseline />
@@ -107,43 +95,11 @@ function Settings() {
           borderRadius: 0,
         }}
       >
-        {/* ── Title bar ── */}
-        <Box
-          onMouseDown={handleTitleBarMouseDown}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            pl: 2,
-            pr: 0.5,
-            py: 0.5,
-            userSelect: "none",
-            borderBottom: "1px solid",
-            borderColor: "neutral.outlinedBorder",
-            flexShrink: 0,
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-            <img
-              src="/app-icon.png"
-              alt="Clock On Top"
-              style={{ width: 16, height: 16 }}
-            />
-            <Typography level="body-xs">
-              Settings
-            </Typography>
-          </Box>
-          <IconButton
-            size="sm"
-            color="neutral"
-            onMouseDown={(e) => e.stopPropagation()}
-            variant="soft"
-            onClick={() => invoke("close_settings_window").catch(console.error)}
-            sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
-          >
-            <CloseRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Box>
+        <WindowTitleBar
+          title="Settings"
+          closeCommand="close_settings_window"
+          closeButtonVariant="soft"
+        />
 
         <Box
           sx={{
