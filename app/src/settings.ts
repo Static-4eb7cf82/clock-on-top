@@ -21,6 +21,9 @@ export interface SettingsFile {
 }
 
 export const SETTINGS_DEFAULTS: SettingsFile = {
+  general: {
+    enableAutomaticUpdates: true,
+  },
   clock: {
     fontFamily: "Space Grotesk",
     fontSize: 26,
@@ -32,9 +35,6 @@ export const SETTINGS_DEFAULTS: SettingsFile = {
     textShadow: "1px 1px 3px rgba(0,0,0,0.5)",
     paddingVertical: "0em",
     paddingHorizontal: "0.2em",
-  },
-  general: {
-    enableAutomaticUpdates: true,
   },
 };
 
