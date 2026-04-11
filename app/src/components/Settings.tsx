@@ -7,10 +7,7 @@ import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
-import List from "@mui/joy/List";
-import ListItem from "@mui/joy/ListItem";
-import ListItemButton from "@mui/joy/ListItemButton";
-import ListItemContent from "@mui/joy/ListItemContent";
+import Button from "@mui/joy/Button";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile } from "../settings";
 import ClockStyleSectionSettings from "./ClockStyleSectionSettings";
@@ -102,7 +99,7 @@ function Settings() {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: "background.sheet",
+          bgcolor: "background.level1",
           color: "text.primary",
           overflow: "hidden",
           borderRadius: 0,
@@ -121,7 +118,6 @@ function Settings() {
             userSelect: "none",
             borderBottom: "1px solid",
             borderColor: "neutral.outlinedBorder",
-            bgcolor: "background.level1",
             flexShrink: 0,
           }}
         >
@@ -151,37 +147,42 @@ function Settings() {
           <Sheet
             variant="soft"
             sx={{
-              width: 220,
+              width: 200,
               borderRight: "1px solid",
               borderColor: "divider",
               p: 1,
               flexShrink: 0,
+              bgcolor: "neutral.softBg",
             }}
           >
-            <List size="sm" sx={{ "--List-gap": "6px" }}>
-              <ListItem>
-                <ListItemButton
-                  selected={activeSection === "general"}
-                  onClick={() => setActiveSection("general")}
-                  variant={activeSection === "general" ? "soft" : "plain"}
-                >
-                  <ListItemContent>
-                    <Typography level="title-sm">General</Typography>
-                  </ListItemContent>
-                </ListItemButton>
-              </ListItem>
-              <ListItem>
-                <ListItemButton
-                  selected={activeSection === "clock-style"}
-                  onClick={() => setActiveSection("clock-style")}
-                  variant={activeSection === "clock-style" ? "soft" : "plain"}
-                >
-                  <ListItemContent>
-                    <Typography level="title-sm">Clock Style</Typography>
-                  </ListItemContent>
-                </ListItemButton>
-              </ListItem>
-            </List>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+              <Button
+                fullWidth
+                size="sm"
+                color="neutral"
+                onClick={() => setActiveSection("general")}
+                variant="soft"
+                sx={{ justifyContent: "flex-start",
+                bgcolor: activeSection === "general" ? "neutral.softHoverBg" : undefined }}
+              >
+                <Typography level="body-sm" sx={{ color: activeSection === "general" ? "neutral.softActiveColor" : undefined }}>
+                  General
+                </Typography>
+              </Button>
+              <Button
+                fullWidth
+                size="sm"
+                color="neutral"
+                onClick={() => setActiveSection("clock-style")}
+                variant="soft"
+                sx={{ justifyContent: "flex-start",
+                bgcolor: activeSection === "clock-style" ? "neutral.softHoverBg" : undefined }}
+              >
+                <Typography level="body-sm" sx={{ color: activeSection === "clock-style" ? "neutral.softActiveColor" : undefined }}>
+                  Clock Style
+                </Typography>
+              </Button>
+            </Box>
           </Sheet>
 
           <Box sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
