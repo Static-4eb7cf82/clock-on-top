@@ -56,7 +56,7 @@ function SettingRow({
           }}
         >
           {isDirty && (
-            <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
+            <Tooltip title="Reset to default" size="md" placement="top" variant="outlined">
               <IconButton
                 size="sm"
                 color="neutral"
