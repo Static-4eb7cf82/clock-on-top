@@ -115,24 +115,26 @@ function Settings() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            px: 2,
-            py: 1.5,
+            pl: 2,
+            pr: 0.5,
+            py: 0.5,
             userSelect: "none",
             borderBottom: "1px solid",
-            borderColor: "neutral.800",
-            bgcolor: "neutral.900",
+            borderColor: "neutral.outlinedBorder",
+            bgcolor: "background.level1",
             flexShrink: 0,
           }}
         >
-          <Typography level="title-md" sx={{ color: "neutral.50", fontWeight: 600 }}>
+          <Typography level="body-xs">
             Clock On Top Settings
           </Typography>
           <IconButton
             size="sm"
-            color="danger"
+            color="neutral"
             onMouseDown={(e) => e.stopPropagation()}
             variant="soft"
             onClick={() => invoke("close_settings_window").catch(console.error)}
+            sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
           >
             <CloseRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
