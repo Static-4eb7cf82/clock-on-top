@@ -24,10 +24,13 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
             isDirty={isDiff("enableAutomaticUpdates")}
             onReset={() => resetOne("enableAutomaticUpdates")}
           >
-            <Switch
-              checked={local.enableAutomaticUpdates}
-              onChange={(e) => update({ enableAutomaticUpdates: e.target.checked })}
-            />
+            {/* Temporary fix to align the switch to the right, put it in a Box */}
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Switch
+                checked={local.enableAutomaticUpdates}
+                onChange={(e) => update({ enableAutomaticUpdates: e.target.checked })}
+              />
+            </Box>
           </SettingRow>
         </Stack>
       </Box>
