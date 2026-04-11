@@ -72,12 +72,26 @@ function Settings() {
   const isGeneralDiff = <K extends keyof GeneralSettings>(key: K) =>
     local.general[key] !== SETTINGS_DEFAULTS.general[key];
 
-  const resetAll = () => {
-    setLocal(SETTINGS_DEFAULTS);
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    invoke("write_settings", { settings: SETTINGS_DEFAULTS }).catch(
-      console.error,
-    );
+  const resetGeneralAll = () => {
+    setLocal((prev) => {
+      const next = {
+        ...prev,
+        general: SETTINGS_DEFAULTS.general,
+      };
+      save(next);
+      return next;
+    });
+  };
+
+  const resetClockAll = () => {
+    setLocal((prev) => {
+      const next = {
+        ...prev,
+        clock: SETTINGS_DEFAULTS.clock,
+      };
+      save(next);
+      return next;
+    });
   };
 
   return (
@@ -157,7 +171,7 @@ function Settings() {
                 update={updateGeneral}
                 resetOne={resetGeneralOne}
                 isDiff={isGeneralDiff}
-                onResetAll={resetAll}
+                onResetAll={resetGeneralAll}
               />
             ) : (
               <ClockStyleSectionSettings
@@ -165,7 +179,7 @@ function Settings() {
                 update={updateClock}
                 resetOne={resetClockOne}
                 isDiff={isClockDiff}
-                onResetAll={resetAll}
+                onResetAll={resetClockAll}
               />
             )}
           </Box>
