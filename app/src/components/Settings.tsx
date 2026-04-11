@@ -9,6 +9,8 @@ import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
 import Button from "@mui/joy/Button";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
+import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
 import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile } from "../settings";
 import ClockStyleSectionSettings from "./ClockStyleSectionSettings";
 import GeneralSectionSettings from "./GeneralSectionSettings";
@@ -160,10 +162,10 @@ function Settings() {
                 fullWidth
                 size="sm"
                 color="neutral"
-                onClick={() => setActiveSection("general")}
                 variant="soft"
-                sx={{ justifyContent: "flex-start",
-                bgcolor: activeSection === "general" ? "neutral.softHoverBg" : undefined }}
+                startDecorator={<TuneRoundedIcon sx={{ color: activeSection === "general" ? "neutral.softActiveColor" : undefined }} />}
+                onClick={() => setActiveSection("general")}
+                sx={{ justifyContent: "flex-start", bgcolor: activeSection === "general" ? "neutral.softHoverBg" : undefined }}
               >
                 <Typography level="body-sm" sx={{ color: activeSection === "general" ? "neutral.softActiveColor" : undefined }}>
                   General
@@ -173,10 +175,10 @@ function Settings() {
                 fullWidth
                 size="sm"
                 color="neutral"
-                onClick={() => setActiveSection("clock-style")}
                 variant="soft"
-                sx={{ justifyContent: "flex-start",
-                bgcolor: activeSection === "clock-style" ? "neutral.softHoverBg" : undefined }}
+                startDecorator={<PaletteRoundedIcon sx={{ color: activeSection === "clock-style" ? "neutral.softActiveColor" : undefined }} />}
+                onClick={() => setActiveSection("clock-style")}
+                sx={{ justifyContent: "flex-start", bgcolor: activeSection === "clock-style" ? "neutral.softHoverBg" : undefined }}
               >
                 <Typography level="body-sm" sx={{ color: activeSection === "clock-style" ? "neutral.softActiveColor" : undefined }}>
                   Clock Style
