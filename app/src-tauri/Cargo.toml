@@ -1,6 +1,6 @@
 [package]
 name = "clock-on-top"
-version = "0.6.1"
+version = "0.7.0"
 description = "A Tauri App"
 authors = ["Static-4eb7cf82"]
 edition = "2021"
