@@ -123,9 +123,16 @@ function Settings() {
             flexShrink: 0,
           }}
         >
-          <Typography level="body-xs">
-            Clock On Top Settings
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+            <img
+              src="/app-icon.png"
+              alt="Clock On Top"
+              style={{ width: 16, height: 16 }}
+            />
+            <Typography level="body-xs">
+              Settings
+            </Typography>
+          </Box>
           <IconButton
             size="sm"
             color="neutral"
