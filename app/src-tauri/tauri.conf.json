@@ -33,7 +33,7 @@
         "title": "Clock Settings",
         "url": "index.html",
         "visible": false,
-        "width": 600,
+        "width": 800,
         "height": 600,
         "transparent": false,
         "decorations": false,

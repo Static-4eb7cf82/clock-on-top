@@ -6,210 +6,77 @@ import CssBaseline from "@mui/joy/CssBaseline";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
-import FormControl from "@mui/joy/FormControl";
-import FormLabel from "@mui/joy/FormLabel";
-import Input from "@mui/joy/Input";
-import Slider from "@mui/joy/Slider";
 import IconButton from "@mui/joy/IconButton";
-import Button from "@mui/joy/Button";
-import Stack from "@mui/joy/Stack";
-import Divider from "@mui/joy/Divider";
-import Tooltip from "@mui/joy/Tooltip";
+import List from "@mui/joy/List";
+import ListItem from "@mui/joy/ListItem";
+import ListItemButton from "@mui/joy/ListItemButton";
+import ListItemContent from "@mui/joy/ListItemContent";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import {
-  ClockSettings,
-  SETTINGS_DEFAULTS,
-  SettingsFile,
-} from "../settings";
-
-const sliderSlotSx = {
-  flex: 1,
-  minHeight: 28,
-  display: "flex",
-  alignItems: "center",
-};
-
-const sliderSx = {
-  my: 0,
-  py: 0,
-};
-
-// ── Row wrapper ──────────────────────────────────────────────────────────────
-
-interface SettingRowProps {
-  label: string;
-  labelAdornment?: React.ReactNode;
-  isDirty: boolean;
-  onReset: () => void;
-  children: React.ReactNode;
-}
-
-function SettingRow({
-  label,
-  labelAdornment,
-  isDirty,
-  onReset,
-  children,
-}: SettingRowProps) {
-  return (
-    <FormControl>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          minHeight: 24,
-          mb: 0.75,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minHeight: 24 }}>
-          <FormLabel
-            sx={{
-              mb: 0,
-              lineHeight: 1,
-              display: "flex",
-              alignItems: "center",
-              minHeight: 24,
-            }}
-          >
-            {label}
-          </FormLabel>
-          {labelAdornment}
-        </Box>
-        <Box
-          sx={{
-            width: 24,
-            height: 24,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          {isDirty && (
-            <Tooltip title="Reset to default" size="md" placement="top" variant="soft">
-              <IconButton
-                size="sm"
-                color="neutral"
-                variant="soft"
-                onClick={onReset}
-                sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
-              >
-                <RestartAltRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
-      </Box>
-      <Box
-        sx={{
-          width: "60%",
-          ml: "auto",
-          minWidth: 0,
-        }}
-      >
-        {children}
-      </Box>
-    </FormControl>
-  );
-}
-
-// ── Color + Opacity row ───────────────────────────────────────────────────────
-
-interface ColorRowProps {
-  colorValue: string;
-  opacityValue: number;
-  onColorChange: (v: string) => void;
-  onOpacityChange: (v: number) => void;
-}
-
-function ColorRow({
-  colorValue,
-  opacityValue,
-  onColorChange,
-  onOpacityChange,
-}: ColorRowProps) {
-  return (
-    <Stack direction="row" spacing={1.5} alignItems="center">
-      <input
-        type="color"
-        value={colorValue}
-        onChange={(e) => onColorChange(e.target.value)}
-        style={{
-          width: 36,
-          height: 28,
-          padding: 2,
-          border: "1px solid var(--joy-palette-neutral-outlinedBorder)",
-          borderRadius: 4,
-          background: "none",
-          cursor: "pointer",
-          flexShrink: 0,
-        }}
-      />
-      <Box sx={sliderSlotSx}>
-        <Slider
-          size="sm"
-          min={0}
-          max={1}
-          step={0.01}
-          value={opacityValue}
-          onChange={(_, v) => onOpacityChange(v as number)}
-          sx={sliderSx}
-        />
-      </Box>
-      <Typography
-        level="body-xs"
-        sx={{ minWidth: 34, textAlign: "right", fontVariantNumeric: "tabular-nums" }}
-      >
-        {Math.round(opacityValue * 100)}%
-      </Typography>
-    </Stack>
-  );
-}
+import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile } from "../settings";
+import ClockStyleSectionSettings from "./ClockStyleSectionSettings";
+import GeneralSectionSettings from "./GeneralSectionSettings";
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 function Settings() {
-  const [local, setLocal] = useState<ClockSettings>(SETTINGS_DEFAULTS.clock);
+  const [local, setLocal] = useState<SettingsFile>(SETTINGS_DEFAULTS);
+  const [activeSection, setActiveSection] = useState<"general" | "clock-style">(
+    "general",
+  );
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     invoke<SettingsFile>("read_settings")
-      .then((next) => setLocal(next.clock))
+      .then((next) => setLocal(next))
       .catch(console.error);
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, []);
 
-  const save = (next: ClockSettings) => {
+  const save = (next: SettingsFile) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      invoke("write_settings", {
-        settings: { ...SETTINGS_DEFAULTS, clock: next },
-      }).catch(console.error);
+      invoke("write_settings", { settings: next }).catch(console.error);
     }, 300);
   };
 
-  const update = (updates: Partial<ClockSettings>) => {
+  const updateClock = (updates: Partial<ClockSettings>) => {
     setLocal((prev) => {
-      const next = { ...prev, ...updates };
+      const next = {
+        ...prev,
+        clock: { ...prev.clock, ...updates },
+      };
       save(next);
       return next;
     });
   };
 
-  const resetOne = <K extends keyof ClockSettings>(key: K) =>
-    update({ [key]: SETTINGS_DEFAULTS.clock[key] });
+  const updateGeneral = (updates: Partial<GeneralSettings>) => {
+    setLocal((prev) => {
+      const next = {
+        ...prev,
+        general: { ...prev.general, ...updates },
+      };
+      save(next);
+      return next;
+    });
+  };
 
-  const isDiff = <K extends keyof ClockSettings>(key: K) =>
-    local[key] !== SETTINGS_DEFAULTS.clock[key];
+  const resetClockOne = <K extends keyof ClockSettings>(key: K) =>
+    updateClock({ [key]: SETTINGS_DEFAULTS.clock[key] });
+
+  const isClockDiff = <K extends keyof ClockSettings>(key: K) =>
+    local.clock[key] !== SETTINGS_DEFAULTS.clock[key];
+
+  const resetGeneralOne = <K extends keyof GeneralSettings>(key: K) =>
+    updateGeneral({ [key]: SETTINGS_DEFAULTS.general[key] });
+
+  const isGeneralDiff = <K extends keyof GeneralSettings>(key: K) =>
+    local.general[key] !== SETTINGS_DEFAULTS.general[key];
 
   const resetAll = () => {
-    setLocal(SETTINGS_DEFAULTS.clock);
+    setLocal(SETTINGS_DEFAULTS);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     invoke("write_settings", { settings: SETTINGS_DEFAULTS }).catch(
       console.error,
@@ -249,325 +116,91 @@ function Settings() {
             alignItems: "center",
             justifyContent: "space-between",
             px: 2,
-            py: 2,
+            py: 1.5,
             userSelect: "none",
             borderBottom: "1px solid",
-            borderColor: "divider",
+            borderColor: "neutral.800",
+            bgcolor: "neutral.900",
             flexShrink: 0,
           }}
         >
-          <Typography
-            level="title-md"
-          >
-            Clock Settings
+          <Typography level="title-md" sx={{ color: "neutral.50", fontWeight: 600 }}>
+            Clock On Top Settings
           </Typography>
           <IconButton
             size="sm"
-            color="neutral"
+            color="danger"
             onMouseDown={(e) => e.stopPropagation()}
-            variant="plain"
-            onClick={() =>
-              invoke("close_settings_window").catch(console.error)
-            }
+            variant="soft"
+            onClick={() => invoke("close_settings_window").catch(console.error)}
           >
             <CloseRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Box>
 
-        {/* ── Settings content ── */}
         <Box
           sx={{
             flex: 1,
-            overflowY: "auto",
-            overflowX: "auto",
-            scrollbarGutter: "stable",
-            scrollbarWidth: "thin",
-            scrollbarColor: "transparent transparent",
-            "&::-webkit-scrollbar": {
-              width: 10,
-              height: 10,
-            },
-            "&::-webkit-scrollbar-track": {
-              background: "transparent",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "transparent",
-              borderRadius: 999,
-              border: "2px solid transparent",
-              backgroundClip: "content-box",
-            },
-            "&:hover": {
-              scrollbarColor:
-                "var(--joy-palette-neutral-plainHoverBg) transparent",
-            },
-            "&:hover::-webkit-scrollbar-thumb": {
-              backgroundColor: "var(--joy-palette-neutral-plainHoverBg)",
-            },
-            "&:hover::-webkit-scrollbar-thumb:hover": {
-              backgroundColor: "var(--joy-palette-neutral-plainActiveBg)",
-            },
-            px: 2.5,
-            py: 2.5,
+            minHeight: 0,
             display: "flex",
-            flexDirection: "column",
-            gap: 0,
+            overflow: "hidden",
           }}
         >
-          <Stack spacing={2.5}>
-            {/* Font Family */}
-            <SettingRow
-              label="Font Family"
-              isDirty={isDiff("fontFamily")}
-              onReset={() => resetOne("fontFamily")}
-            >
-              <Input
-                size="sm"
-                value={local.fontFamily}
-                onChange={(e) => update({ fontFamily: e.target.value })}
-                placeholder="e.g. Space Grotesk"
-                sx={{ fontFamily: `${local.fontFamily}, sans-serif` }}
-              />
-            </SettingRow>
-
-            <Divider />
-
-            {/* Font Size */}
-            <SettingRow
-              label="Font Size"
-              isDirty={isDiff("fontSize")}
-              onReset={() => resetOne("fontSize")}
-            >
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Typography
-                  level="body-xs"
-                  sx={{
-                    minWidth: 42,
-                    textAlign: "right",
-                    fontVariantNumeric: "tabular-nums",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    minHeight: 28,
-                  }}
-                >
-                  {local.fontSize}px
-                </Typography>
-                <Box sx={sliderSlotSx}>
-                  <Slider
-                    size="sm"
-                    min={10}
-                    max={400}
-                    step={1}
-                    value={local.fontSize}
-                    onChange={(_, v) => update({ fontSize: v as number })}
-                    sx={sliderSx}
-                  />
-                </Box>
-              </Stack>
-            </SettingRow>
-
-            <Divider />
-
-            {/* Foreground Color */}
-            <SettingRow
-              label="Text Color & Opacity"
-              isDirty={isDiff("foregroundColor") || isDiff("foregroundOpacity")}
-              onReset={() =>
-                update({
-                  foregroundColor: SETTINGS_DEFAULTS.clock.foregroundColor,
-                  foregroundOpacity: SETTINGS_DEFAULTS.clock.foregroundOpacity,
-                })
-              }
-            >
-              <ColorRow
-                colorValue={local.foregroundColor}
-                opacityValue={local.foregroundOpacity}
-                onColorChange={(v) => update({ foregroundColor: v })}
-                onOpacityChange={(v) => update({ foregroundOpacity: v })}
-              />
-            </SettingRow>
-
-            <Divider />
-
-            {/* Background Color */}
-            <SettingRow
-              label="Background Color & Opacity"
-              isDirty={
-                isDiff("backgroundColor") || isDiff("backgroundOpacity")
-              }
-              onReset={() =>
-                update({
-                  backgroundColor: SETTINGS_DEFAULTS.clock.backgroundColor,
-                  backgroundOpacity: SETTINGS_DEFAULTS.clock.backgroundOpacity,
-                })
-              }
-            >
-              <ColorRow
-                colorValue={local.backgroundColor}
-                opacityValue={local.backgroundOpacity}
-                onColorChange={(v) => update({ backgroundColor: v })}
-                onOpacityChange={(v) => update({ backgroundOpacity: v })}
-              />
-            </SettingRow>
-
-            <Divider />
-
-            {/* Background Border Radius */}
-            <SettingRow
-              label="Background Border Radius"
-              isDirty={isDiff("borderRadius")}
-              onReset={() => resetOne("borderRadius")}
-            >
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Typography
-                  level="body-xs"
-                  sx={{
-                    minWidth: 42,
-                    textAlign: "right",
-                    fontVariantNumeric: "tabular-nums",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    minHeight: 28,
-                  }}
-                >
-                  {local.borderRadius}px
-                </Typography>
-                <Box sx={sliderSlotSx}>
-                  <Slider
-                    size="sm"
-                    min={0}
-                    max={270}
-                    step={1}
-                    value={local.borderRadius}
-                    onChange={(_, v) => update({ borderRadius: v as number })}
-                    sx={sliderSx}
-                  />
-                </Box>
-              </Stack>
-            </SettingRow>
-
-            <Divider />
-
-            {/* Text Shadow */}
-            <SettingRow
-              label="Text Shadow"
-              labelAdornment={
-                <Tooltip
-                  size="md"
-                  placement="top"
-                  variant="soft"
-                  title={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <Typography level="body-sm" sx={{ color: "text.primary" }}>
-                        Accepts valid text-shadow CSS. Learn more here
-                      </Typography>
-                      <IconButton
-                        size="sm"
-                        component="a"
-                        href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-shadow"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="plain"
-                        color="neutral"
-                        sx={{ minWidth: 22, minHeight: 22, width: 22, height: 22 }}
-                      >
-                        <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </Box>
-                  }
-                >
-                  <IconButton
-                    size="sm"
-                    color="neutral"
-                    variant="plain"
-                    sx={{
-                      minWidth: 22,
-                      minHeight: 22,
-                      width: 22,
-                      height: 22,
-                      cursor: "default",
-                      "&:hover": { cursor: "default" },
-                    }}
-                  >
-                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                  </IconButton>
-                </Tooltip>
-              }
-              isDirty={isDiff("textShadow")}
-              onReset={() => resetOne("textShadow")}
-            >
-              <Input
-                size="sm"
-                value={local.textShadow}
-                placeholder="e.g. 1px 1px 3px rgba(0,0,0,0.5)"
-                onChange={(e) => update({ textShadow: e.target.value })}
-              />
-            </SettingRow>
-
-            <Divider />
-
-            {/* Padding */}
-            <SettingRow
-              label="Padding"
-              isDirty={isDiff("paddingVertical") || isDiff("paddingHorizontal")}
-              onReset={() =>
-                update({
-                  paddingVertical: SETTINGS_DEFAULTS.clock.paddingVertical,
-                  paddingHorizontal: SETTINGS_DEFAULTS.clock.paddingHorizontal,
-                })
-              }
-            >
-              <Stack spacing={1.5}>
-                <FormControl size="sm" sx={{ flex: 1 }}>
-                  <FormLabel>
-                    Vertical
-                  </FormLabel>
-                  <Input
-                    size="sm"
-                    value={local.paddingVertical}
-                    placeholder="0em"
-                    onChange={(e) => update({ paddingVertical: e.target.value })}
-                  />
-                </FormControl>
-                <FormControl size="sm" sx={{ flex: 1 }}>
-                  <FormLabel>
-                    Horizontal
-                  </FormLabel>
-                  <Input
-                    size="sm"
-                    value={local.paddingHorizontal}
-                    placeholder="0.2em"
-                    onChange={(e) =>
-                      update({ paddingHorizontal: e.target.value })
-                    }
-                  />
-                </FormControl>
-              </Stack>
-            </SettingRow>
-          </Stack>
-        </Box>
-
-        {/* ── Footer ── */}
-        <Box
-          sx={{
-            px: 2.5,
-            py: 2,
-            borderTop: "1px solid",
-            borderColor: "divider",
-            flexShrink: 0,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
-          <Button
-            color="neutral"
-            variant="outlined"
-            size="sm"
-            onClick={resetAll}
+          <Sheet
+            variant="soft"
+            sx={{
+              width: 220,
+              borderRight: "1px solid",
+              borderColor: "divider",
+              p: 1,
+              flexShrink: 0,
+            }}
           >
-            Reset All to Defaults
-          </Button>
+            <List size="sm" sx={{ "--List-gap": "6px" }}>
+              <ListItem>
+                <ListItemButton
+                  selected={activeSection === "general"}
+                  onClick={() => setActiveSection("general")}
+                  variant={activeSection === "general" ? "soft" : "plain"}
+                >
+                  <ListItemContent>
+                    <Typography level="title-sm">General</Typography>
+                  </ListItemContent>
+                </ListItemButton>
+              </ListItem>
+              <ListItem>
+                <ListItemButton
+                  selected={activeSection === "clock-style"}
+                  onClick={() => setActiveSection("clock-style")}
+                  variant={activeSection === "clock-style" ? "soft" : "plain"}
+                >
+                  <ListItemContent>
+                    <Typography level="title-sm">Clock Style</Typography>
+                  </ListItemContent>
+                </ListItemButton>
+              </ListItem>
+            </List>
+          </Sheet>
+
+          <Box sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
+            {activeSection === "general" ? (
+              <GeneralSectionSettings
+                local={local.general}
+                update={updateGeneral}
+                resetOne={resetGeneralOne}
+                isDiff={isGeneralDiff}
+                onResetAll={resetAll}
+              />
+            ) : (
+              <ClockStyleSectionSettings
+                local={local.clock}
+                update={updateClock}
+                resetOne={resetClockOne}
+                isDiff={isClockDiff}
+                onResetAll={resetAll}
+              />
+            )}
+          </Box>
         </Box>
       </Sheet>
     </CssVarsProvider>
