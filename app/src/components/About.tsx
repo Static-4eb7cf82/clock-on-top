@@ -49,7 +49,7 @@ function About() {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: "background.sheet",
+          bgcolor: "background.level1",
           color: "text.primary",
           overflow: "hidden",
           borderRadius: 0,
@@ -71,12 +71,10 @@ function About() {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "flex-start",
-            px: 3,
-            pb: 3,
-            pt: 0,
+            p: 3,
           }}
         >
-          {/* App icon + name */}
+          {/* App name */}
           <Box
             sx={{
               display: "flex",
@@ -86,31 +84,26 @@ function About() {
               mb: 2,
             }}
           >
-            <img
-              src="/app-icon.png"
-              alt="Clock On Top"
-              style={{ width: 36, height: 36 }}
-            />
-            <Typography level="h3">Clock On Top</Typography>
+            <Typography level="title-md">Clock On Top</Typography>
           </Box>
 
           {/* Metadata */}
           <Stack spacing={0.3} alignItems="flex-start" sx={{ mb: 5 }}>
             <Typography level="body-sm" textColor="text.secondary">
-              Created by Static-4eb7cf82
+              Version: {version}
             </Typography>
             <Typography level="body-sm" textColor="text.secondary">
               License: MIT
             </Typography>
             <Typography level="body-sm" textColor="text.secondary">
-              Version: {version}
+              Created by Static-4eb7cf82
             </Typography>
           </Stack>
 
           {/* Action buttons */}
           <Stack direction="column" spacing={1} justifyContent="center" width="100%">
             <Button
-              variant="plain"
+              variant="outlined"
               color="neutral"
               size="sm"
               endDecorator={<GitHubIcon />}
@@ -119,7 +112,7 @@ function About() {
               GitHub
             </Button>
             <Button
-              variant="plain"
+              variant="outlined"
               color="neutral"
               size="sm"
               endDecorator={<BugReportIcon />}
