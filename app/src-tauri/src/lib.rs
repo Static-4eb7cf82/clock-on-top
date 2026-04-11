@@ -193,19 +193,7 @@ fn read_settings(app: tauri::AppHandle) -> Result<SettingsFile, String> {
         return Ok(SettingsFile::default());
     }
     let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
-
-    // Preferred format: full settings file object.
-    if let Ok(settings) = serde_json::from_str::<SettingsFile>(&content) {
-        return Ok(settings);
-    }
-
-    // Backward compatibility: legacy format with ClockSettings at the top level.
-    let legacy_clock =
-        serde_json::from_str::<ClockSettings>(&content).map_err(|e| e.to_string())?;
-    Ok(SettingsFile {
-        clock: legacy_clock,
-        ..SettingsFile::default()
-    })
+    serde_json::from_str::<SettingsFile>(&content).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -219,6 +207,70 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
     fs::write(&path, content).map_err(|e| e.to_string())?;
     app.emit("settings-updated", &settings)
         .map_err(|e| e.to_string())
+}
+
+fn is_valid_hex_color(color: &str) -> bool {
+    let s = color.trim();
+    if !s.starts_with('#') {
+        return false;
+    }
+    let hex = &s[1..];
+    matches!(hex.len(), 3 | 6 | 8) && hex.chars().all(|ch| ch.is_ascii_hexdigit())
+}
+
+fn validate_settings(app: &tauri::AppHandle) -> Result<SettingsFile, String> {
+    let path = settings_path(app)?;
+    let defaults = SettingsFile::default();
+
+    let mut settings = if path.exists() {
+        let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+
+        if let Ok(s) = serde_json::from_str::<SettingsFile>(&content) {
+            s
+        } else {
+            println!("WARN Settings file could not be parsed, resetting to defaults");
+            SettingsFile::default()
+        }
+    } else {
+        println!("Settings file not found, creating with defaults");
+        SettingsFile::default()
+    };
+
+    // Validate and repair individual clock settings.
+    if settings.clock.font_family.trim().is_empty() {
+        settings.clock.font_family = defaults.clock.font_family;
+    }
+    if settings.clock.font_size <= 0.0 || !settings.clock.font_size.is_finite() {
+        settings.clock.font_size = defaults.clock.font_size;
+    }
+    if !is_valid_hex_color(&settings.clock.foreground_color) {
+        settings.clock.foreground_color = defaults.clock.foreground_color;
+    }
+    if !(0.0..=1.0).contains(&settings.clock.foreground_opacity)
+        || !settings.clock.foreground_opacity.is_finite()
+    {
+        settings.clock.foreground_opacity = defaults.clock.foreground_opacity;
+    }
+    if !is_valid_hex_color(&settings.clock.background_color) {
+        settings.clock.background_color = defaults.clock.background_color;
+    }
+    if !(0.0..=1.0).contains(&settings.clock.background_opacity)
+        || !settings.clock.background_opacity.is_finite()
+    {
+        settings.clock.background_opacity = defaults.clock.background_opacity;
+    }
+    if settings.clock.border_radius < 0.0 || !settings.clock.border_radius.is_finite() {
+        settings.clock.border_radius = defaults.clock.border_radius;
+    }
+
+    // Persist the validated (and potentially repaired) settings.
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
+    fs::write(&path, content).map_err(|e| e.to_string())?;
+
+    Ok(settings)
 }
 
 #[tauri::command]
@@ -266,8 +318,8 @@ pub fn run() {
             close_about_window,
         ])
         .setup(|app| {
-            let settings = read_settings(app.handle().clone()).unwrap_or_else(|error| {
-                println!("ERROR Failed to read settings, using defaults: {error}");
+            let settings = validate_settings(app.handle()).unwrap_or_else(|error| {
+                println!("ERROR Failed to validate settings, using defaults: {error}");
                 SettingsFile::default()
             });
             let enable_automatic_updates = settings.general.enable_automatic_updates;
