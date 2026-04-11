@@ -270,6 +270,11 @@ fn validate_settings(app: &tauri::AppHandle) -> Result<SettingsFile, String> {
     let content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(&path, content).map_err(|e| e.to_string())?;
 
+    println!(
+        "Current Settings: {}",
+        serde_json::to_string(&settings).unwrap_or_else(|_| "<serialization error>".to_string())
+    );
+
     Ok(settings)
 }
 
