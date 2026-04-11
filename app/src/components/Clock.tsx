@@ -47,7 +47,7 @@ function Clock() {
 
   useEffect(() => {
     resizeWindowToClock();
-  }, [clockDisplayString, settings.fontFamily, settings.fontSize, settings.paddingVertical, settings.paddingHorizontal]);
+  }, [clockDisplayString, settings.clock.fontFamily, settings.clock.fontSize, settings.clock.paddingVertical, settings.clock.paddingHorizontal]);
 
   const handleMouseDown = async () => {
     setIsDragging(true);
@@ -69,13 +69,13 @@ function Clock() {
         ref={clockRef}
         className={`clock ${isDragging ? "dragging" : ""}`}
         style={{
-          fontFamily: settings.fontFamily,
-          fontSize: `${settings.fontSize}px`,
-          color: hexToRgba(settings.foregroundColor, settings.foregroundOpacity),
-          backgroundColor: hexToRgba(settings.backgroundColor, settings.backgroundOpacity),
-          borderRadius: `${settings.borderRadius}px`,
-          textShadow: settings.textShadow || undefined,
-          padding: `${settings.paddingVertical} ${settings.paddingHorizontal}`,
+          fontFamily: settings.clock.fontFamily,
+          fontSize: `${settings.clock.fontSize}px`,
+          color: hexToRgba(settings.clock.foregroundColor, settings.clock.foregroundOpacity),
+          backgroundColor: hexToRgba(settings.clock.backgroundColor, settings.clock.backgroundOpacity),
+          borderRadius: `${settings.clock.borderRadius}px`,
+          textShadow: settings.clock.textShadow || undefined,
+          padding: `${settings.clock.paddingVertical} ${settings.clock.paddingHorizontal}`,
         }}
         onMouseDown={handleMouseDown}
         onContextMenu={handleContextMenu}

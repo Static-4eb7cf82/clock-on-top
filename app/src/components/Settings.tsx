@@ -21,8 +21,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import {
   ClockSettings,
-  DEFAULT_SETTINGS_FILE,
-  CLOCK_DEFAULTS,
+  SETTINGS_DEFAULTS,
   SettingsFile,
 } from "../settings";
 
@@ -174,7 +173,7 @@ function ColorRow({
 // ── Main component ────────────────────────────────────────────────────────────
 
 function Settings() {
-  const [local, setLocal] = useState<ClockSettings>(CLOCK_DEFAULTS);
+  const [local, setLocal] = useState<ClockSettings>(SETTINGS_DEFAULTS.clock);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -190,7 +189,7 @@ function Settings() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       invoke("write_settings", {
-        settings: { ...DEFAULT_SETTINGS_FILE, clock: next },
+        settings: { ...SETTINGS_DEFAULTS, clock: next },
       }).catch(console.error);
     }, 300);
   };
@@ -204,15 +203,15 @@ function Settings() {
   };
 
   const resetOne = <K extends keyof ClockSettings>(key: K) =>
-    update({ [key]: CLOCK_DEFAULTS[key] });
+    update({ [key]: SETTINGS_DEFAULTS.clock[key] });
 
   const isDiff = <K extends keyof ClockSettings>(key: K) =>
-    local[key] !== CLOCK_DEFAULTS[key];
+    local[key] !== SETTINGS_DEFAULTS.clock[key];
 
   const resetAll = () => {
-    setLocal(CLOCK_DEFAULTS);
+    setLocal(SETTINGS_DEFAULTS.clock);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    invoke("write_settings", { settings: DEFAULT_SETTINGS_FILE }).catch(
+    invoke("write_settings", { settings: SETTINGS_DEFAULTS }).catch(
       console.error,
     );
   };
@@ -375,8 +374,8 @@ function Settings() {
               isDirty={isDiff("foregroundColor") || isDiff("foregroundOpacity")}
               onReset={() =>
                 update({
-                  foregroundColor: CLOCK_DEFAULTS.foregroundColor,
-                  foregroundOpacity: CLOCK_DEFAULTS.foregroundOpacity,
+                  foregroundColor: SETTINGS_DEFAULTS.clock.foregroundColor,
+                  foregroundOpacity: SETTINGS_DEFAULTS.clock.foregroundOpacity,
                 })
               }
             >
@@ -398,8 +397,8 @@ function Settings() {
               }
               onReset={() =>
                 update({
-                  backgroundColor: CLOCK_DEFAULTS.backgroundColor,
-                  backgroundOpacity: CLOCK_DEFAULTS.backgroundOpacity,
+                  backgroundColor: SETTINGS_DEFAULTS.clock.backgroundColor,
+                  backgroundOpacity: SETTINGS_DEFAULTS.clock.backgroundOpacity,
                 })
               }
             >
@@ -514,8 +513,8 @@ function Settings() {
               isDirty={isDiff("paddingVertical") || isDiff("paddingHorizontal")}
               onReset={() =>
                 update({
-                  paddingVertical: CLOCK_DEFAULTS.paddingVertical,
-                  paddingHorizontal: CLOCK_DEFAULTS.paddingHorizontal,
+                  paddingVertical: SETTINGS_DEFAULTS.clock.paddingVertical,
+                  paddingHorizontal: SETTINGS_DEFAULTS.clock.paddingHorizontal,
                 })
               }
             >
