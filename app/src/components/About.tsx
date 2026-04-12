@@ -65,43 +65,31 @@ function About() {
         <Box
           sx={{
             flex: 1,
-            width: "300px",
             alignSelf: "center",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "flex-start",
-            p: 3,
+            py: 3,
+            px: 4,
           }}
         >
-          {/* App name */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 1.5,
-              mb: 2,
-            }}
-          >
-            <Typography level="title-md">Clock On Top</Typography>
-          </Box>
-
           {/* Metadata */}
-          <Stack spacing={0.3} alignItems="flex-start" sx={{ mb: 5 }}>
+          <Stack spacing={1} alignItems="flex-start" sx={{ mb: 5 }}>
+            <Typography level="title-md">Clock On Top</Typography>
             <Typography level="body-sm" textColor="text.secondary">
-              Version: {version}
+              Version {version}
             </Typography>
             <Typography level="body-sm" textColor="text.secondary">
-              License: MIT
+              Copyright © 2026 Static-4eb7cf82
             </Typography>
             <Typography level="body-sm" textColor="text.secondary">
-              Created by Static-4eb7cf82
+              Licensed under the GNU General Public License v3.0 or later. This software is provided "as is", without warranty of any kind.
             </Typography>
           </Stack>
 
           {/* Action buttons */}
-          <Stack direction="column" spacing={1} justifyContent="center" width="100%">
+          <Stack direction="column" spacing={1} justifyContent="center" width="50%">
             <Button
               variant="outlined"
               color="neutral"
