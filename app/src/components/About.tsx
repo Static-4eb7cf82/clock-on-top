@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
+import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
@@ -10,6 +11,7 @@ import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import BugReportIcon from "@mui/icons-material/BugReport";
+import GavelRoundedIcon from '@mui/icons-material/GavelRounded';
 import WindowTitleBar from "./WindowTitleBar";
 
 const GITHUB_URL = "https://github.com/Static-4eb7cf82/clock-on-top";
@@ -17,6 +19,14 @@ const ISSUES_URL = "https://github.com/Static-4eb7cf82/clock-on-top/issues";
 
 function About() {
   const [version, setVersion] = useState("-");
+
+  const handleViewLicense = async () => {
+    try {
+      await invoke("open_license_file");
+    } catch (err) {
+      console.error("Failed to open bundled license file:", err);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -107,6 +117,17 @@ function About() {
               onClick={() => openUrl(ISSUES_URL).catch(console.error)}
             >
               Report a Bug
+            </Button>
+            <Button
+              variant="outlined"
+              color="neutral"
+              size="sm"
+              endDecorator={<GavelRoundedIcon />}
+              onClick={() => {
+                void handleViewLicense();
+              }}
+            >
+              View License
             </Button>
           </Stack>
         </Box>

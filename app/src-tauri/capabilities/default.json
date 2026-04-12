@@ -8,6 +8,20 @@
     "core:window:allow-start-dragging",
     "core:app:allow-default-window-icon",
     "updater:default",
-    "opener:default"
+    "opener:default",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "$RESOURCE/LICENSE"
+        },
+        {
+          "path": "$RESOURCE/_up_/LICENSE"
+        },
+        {
+          "path": "$RESOURCE/_up_/_up_/LICENSE"
+        }
+      ]
+    }
   ]
 }
