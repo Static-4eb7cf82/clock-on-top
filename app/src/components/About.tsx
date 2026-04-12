@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
-import { invoke } from "@tauri-apps/api/core";
 import { resolveResource } from '@tauri-apps/api/path';
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { CssVarsProvider } from "@mui/joy/styles";
