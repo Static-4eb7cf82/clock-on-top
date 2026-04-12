@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { resolveResource } from '@tauri-apps/api/path';
+import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import Box from "@mui/joy/Box";
@@ -22,7 +23,10 @@ function About() {
 
   const handleViewLicense = async () => {
     try {
-      await invoke("open_license_file");
+      // opens the LICENSE file using the default program
+      console.log("Attempting to open bundled license file...");
+      const licensePath = await resolveResource('LICENSE');
+      await openPath(licensePath);
     } catch (err) {
       console.error("Failed to open bundled license file:", err);
     }

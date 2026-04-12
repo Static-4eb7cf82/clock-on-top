@@ -13,13 +13,7 @@
       "identifier": "opener:allow-open-path",
       "allow": [
         {
-          "path": "$RESOURCE/LICENSE"
-        },
-        {
-          "path": "$RESOURCE/_up_/LICENSE"
-        },
-        {
-          "path": "$RESOURCE/_up_/_up_/LICENSE"
+          "path": "$RESOURCE/**/*"
         }
       ]
     }

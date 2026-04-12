@@ -306,32 +306,6 @@ fn close_about_window(window: tauri::WebviewWindow) -> Result<(), String> {
     window.hide().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
-fn open_license_file(app: tauri::AppHandle) -> Result<(), String> {
-    use tauri_plugin_opener::OpenerExt;
-
-    let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-    let candidates = [
-        resource_dir.join("LICENSE"),
-        resource_dir.join("_up_").join("LICENSE"),
-        resource_dir.join("_up_").join("_up_").join("LICENSE"),
-    ];
-
-    let license_path = candidates
-        .into_iter()
-        .find(|path| path.exists())
-        .ok_or_else(|| {
-            format!(
-                "Bundled license file was not found under resource directory: {}",
-                resource_dir.display()
-            )
-        })?;
-
-    app.opener()
-        .open_path(license_path.to_string_lossy().into_owned(), None::<&str>)
-        .map_err(|e| e.to_string())
-}
-
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -347,7 +321,6 @@ pub fn run() {
             close_settings_window,
             open_about_window,
             close_about_window,
-            open_license_file,
         ])
         .setup(|app| {
             let settings = validate_settings(app.handle()).unwrap_or_else(|error| {
