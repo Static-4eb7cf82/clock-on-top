@@ -126,9 +126,7 @@ function About() {
               color="neutral"
               size="sm"
               endDecorator={<GavelRoundedIcon />}
-              onClick={() => {
-                void handleViewLicense();
-              }}
+              onClick={() => void handleViewLicense()}
             >
               View License
             </Button>
