@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import useSettings from "../hooks/useSettings";
 import { hexToRgba } from "../settings";
+import { useDragFix } from "../utils/dragFix";
 
 function Clock() {
   const [now, setNow] = useState(() => new Date());
-  const [isDragging, setIsDragging] = useState(false);
   const clockRef = useRef<HTMLDivElement>(null);
   const settings = useSettings();
+  const { isDragging, handleMouseDown, handleMouseUp } = useDragFix(10);
 
   const hours = now.getHours();
   const minutes = now.getMinutes();
@@ -49,17 +49,6 @@ function Clock() {
     resizeWindowToClock();
   }, [clockDisplayString, settings.clock.fontFamily, settings.clock.fontSize, settings.clock.paddingVertical, settings.clock.paddingHorizontal]);
 
-  const handleMouseDown = async () => {
-    setIsDragging(true);
-    try {
-      const appWindow = getCurrentWindow();
-      await appWindow.startDragging();
-    } catch (e) {
-      console.error("Failed to start dragging:", e);
-    }
-    setIsDragging(false);
-  };
-
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
   };
@@ -78,6 +67,7 @@ function Clock() {
           padding: `${settings.clock.paddingVertical} ${settings.clock.paddingHorizontal}`,
         }}
         onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
         onContextMenu={handleContextMenu}
       >
         {clockDisplayString}

@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { CssVarsProvider } from "@mui/joy/styles";
+import { useColorScheme } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
+import useSettings from "../hooks/useSettings";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
@@ -10,13 +12,32 @@ import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import BugReportIcon from "@mui/icons-material/BugReport";
-import WindowTitleBar from "./WindowTitleBar";
 
 const GITHUB_URL = "https://github.com/Static-4eb7cf82/clock-on-top";
 const ISSUES_URL = "https://github.com/Static-4eb7cf82/clock-on-top/issues";
 
+// ── Theme Controller ──────────────────────────────────────────────────────────
+
+function ThemeController({ appTheme }: { appTheme: string }) {
+  const { setMode } = useColorScheme();
+  
+  useEffect(() => {
+    if (appTheme === "system") {
+      setMode("system" as any);
+    } else {
+      setMode(appTheme as "light" | "dark");
+    }
+  }, [appTheme, setMode]);
+  
+  return null;
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 function About() {
   const [version, setVersion] = useState("-");
+  const settings = useSettings();
+
 
   useEffect(() => {
     let isMounted = true;
@@ -37,10 +58,8 @@ function About() {
   }, []);
 
   return (
-    <CssVarsProvider
-      defaultMode="dark"
-      modeStorageKey="clock-on-top-settings-mode"
-    >
+    <CssVarsProvider defaultMode="dark">
+      <ThemeController appTheme={settings.general.appTheme} />
       <CssBaseline />
       <Sheet
         variant="plain"
@@ -55,12 +74,6 @@ function About() {
           borderRadius: 0,
         }}
       >
-        <WindowTitleBar
-          title="About"
-          closeCommand="close_about_window"
-          closeButtonVariant="soft"
-        />
-
         {/* ── Content ── */}
         <Box
           sx={{

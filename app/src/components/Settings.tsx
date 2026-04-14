@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
+import { useColorScheme } from "@mui/joy/styles";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
@@ -11,7 +12,22 @@ import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
 import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile } from "../settings";
 import ClockStyleSectionSettings from "./ClockStyleSectionSettings";
 import GeneralSectionSettings from "./GeneralSectionSettings";
-import WindowTitleBar from "./WindowTitleBar";
+
+// ── Theme Controller ──────────────────────────────────────────────────────────
+
+function ThemeController({ appTheme }: { appTheme: string }) {
+  const { setMode } = useColorScheme();
+  
+  useEffect(() => {
+    if (appTheme === "system") {
+      setMode("system" as any);
+    } else {
+      setMode(appTheme as "light" | "dark");
+    }
+  }, [appTheme, setMode]);
+  
+  return null;
+}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -95,7 +111,8 @@ function Settings() {
   };
 
   return (
-    <CssVarsProvider defaultMode="dark" modeStorageKey="clock-on-top-settings-mode">
+    <CssVarsProvider defaultMode="dark">
+      <ThemeController appTheme={local.general.appTheme} />
       <CssBaseline />
       <Sheet
         sx={{
@@ -109,12 +126,6 @@ function Settings() {
           borderRadius: 0,
         }}
       >
-        <WindowTitleBar
-          title="Settings"
-          closeCommand="close_settings_window"
-          closeButtonVariant="soft"
-        />
-
         <Box
           sx={{
             flex: 1,

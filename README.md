@@ -23,7 +23,3 @@ Download the latest installer from the [Releases](../../releases) page and run i
 2. The clock will appear on your screen
 3. Click and drag to reposition it
 4. Right-click the system tray icon to access options or quit
-
-## Startup behavior
-
-To have Clock On Top start automatically when you log in to your system, add it to your operating system's startup applications. On Windows, you can do this by copying the desktop shortcut to the `Startup` folder (`shell:startup` in the Run dialog), e.g. `C:\Users\<username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`

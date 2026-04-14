@@ -1,7 +1,11 @@
 use std::fs;
 use std::path::PathBuf;
+use tauri::webview::PageLoadEvent;
 use tauri::Emitter;
 use tauri::Manager;
+use tauri::WebviewWindow;
+use tauri::WebviewWindowBuilder;
+use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 use tauri_plugin_updater::UpdaterExt;
 
 // ── Settings type ─────────────────────────────────────────────────────────────
@@ -42,12 +46,16 @@ impl Default for ClockSettings {
 #[serde(rename_all = "camelCase", default)]
 struct GeneralSettings {
     enable_automatic_updates: bool,
+    launch_on_startup: bool,
+    app_theme: String,
 }
 
 impl Default for GeneralSettings {
     fn default() -> Self {
         GeneralSettings {
             enable_automatic_updates: true,
+            launch_on_startup: true,
+            app_theme: "system".to_string(),
         }
     }
 }
@@ -71,6 +79,50 @@ impl Default for SettingsFile {
 fn settings_path(_app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let home_dir = dirs::home_dir().ok_or_else(|| "Cannot determine home directory".to_string())?;
     Ok(home_dir.join(".clockontop").join("settings.json"))
+}
+
+fn show_and_focus_window(window: &WebviewWindow) -> Result<(), String> {
+    window.show().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())
+}
+
+// Recreate auxiliary windows from tauri.conf.json so the runtime behavior stays
+// aligned with config instead of duplicating window options in Rust.
+fn create_aux_window_from_config(app: &tauri::AppHandle, label: &str) -> Result<(), String> {
+    let window_config = app
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|window| window.label == label)
+        .ok_or_else(|| format!("window config not found for label: {label}"))?;
+
+    WebviewWindowBuilder::from_config(app, window_config)
+        .map_err(|e| e.to_string())?
+        // Newly created windows can briefly flash white on Windows if they are
+        // shown before the first webview paint completes, so keep them hidden
+        // until the initial page load finishes.
+        .on_page_load(|window, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                let should_show = window.is_visible().map(|visible| !visible).unwrap_or(true);
+                if should_show {
+                    let _ = show_and_focus_window(&window);
+                }
+            }
+        })
+        .build()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+// Reuse an existing auxiliary window when possible; otherwise recreate it and
+// let the page-load hook reveal it once the webview is ready.
+fn open_aux_window(app: &tauri::AppHandle, label: &str) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window(label) {
+        return show_and_focus_window(&window);
+    }
+
+    create_aux_window_from_config(app, label)
 }
 
 async fn check_for_updates(app_handle: tauri::AppHandle, enable_automatic_updates: bool) -> bool {
@@ -149,16 +201,10 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
         .tooltip("Clock On Top")
         .on_menu_event(|app, event| match event.id().as_ref() {
             "settings" => {
-                if let Some(w) = app.get_webview_window("settings") {
-                    let _ = w.show();
-                    let _ = w.set_focus();
-                }
+                let _ = open_aux_window(app, "settings");
             }
             "about_window" => {
-                if let Some(w) = app.get_webview_window("about") {
-                    let _ = w.show();
-                    let _ = w.set_focus();
-                }
+                let _ = open_aux_window(app, "about");
             }
             "report_bug" => {
                 use tauri_plugin_opener::OpenerExt;
@@ -205,8 +251,22 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
 
     let content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(&path, content).map_err(|e| e.to_string())?;
+
+    if let Err(error) = apply_launch_on_startup(&app, settings.general.launch_on_startup) {
+        println!("WARN Failed to set launch on startup: {error}");
+    }
+
     app.emit("settings-updated", &settings)
         .map_err(|e| e.to_string())
+}
+
+fn apply_launch_on_startup(app: &tauri::AppHandle, launch_on_startup: bool) -> Result<(), String> {
+    let autolaunch = app.autolaunch();
+    if launch_on_startup {
+        autolaunch.enable().map_err(|e| e.to_string())
+    } else {
+        autolaunch.disable().map_err(|e| e.to_string())
+    }
 }
 
 fn is_valid_hex_color(color: &str) -> bool {
@@ -280,11 +340,7 @@ fn validate_settings(app: &tauri::AppHandle) -> Result<SettingsFile, String> {
 
 #[tauri::command]
 fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
-    let window = app
-        .get_webview_window("settings")
-        .ok_or_else(|| "settings window not found".to_string())?;
-    window.show().map_err(|e| e.to_string())?;
-    window.set_focus().map_err(|e| e.to_string())
+    open_aux_window(&app, "settings")
 }
 
 #[tauri::command]
@@ -294,11 +350,7 @@ fn close_settings_window(window: tauri::WebviewWindow) -> Result<(), String> {
 
 #[tauri::command]
 fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
-    let window = app
-        .get_webview_window("about")
-        .ok_or_else(|| "about window not found".to_string())?;
-    window.show().map_err(|e| e.to_string())?;
-    window.set_focus().map_err(|e| e.to_string())
+    open_aux_window(&app, "about")
 }
 
 #[tauri::command]
@@ -311,6 +363,10 @@ fn close_about_window(window: tauri::WebviewWindow) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None::<Vec<&str>>,
+        ))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
@@ -327,6 +383,13 @@ pub fn run() {
                 println!("ERROR Failed to validate settings, using defaults: {error}");
                 SettingsFile::default()
             });
+
+            if let Err(error) =
+                apply_launch_on_startup(app.handle(), settings.general.launch_on_startup)
+            {
+                println!("WARN Failed to apply launch on startup setting: {error}");
+            }
+
             let enable_automatic_updates = settings.general.enable_automatic_updates;
 
             let app_handle = app.handle().clone();
