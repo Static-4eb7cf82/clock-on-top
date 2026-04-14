@@ -27,9 +27,3 @@ Download the latest installer from the [Releases](../../releases) page and run i
 ## Startup behavior
 
 To have Clock On Top start automatically when you log in to your system, add it to your operating system's startup applications. On Windows, you can do this by copying the desktop shortcut to the `Startup` folder (`shell:startup` in the Run dialog), e.g. `C:\Users\<username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
-
-## License
-
-This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). All source code in this repository is covered under this license unless otherwise stated.
-
-See the [LICENSE](LICENSE) file for details.
