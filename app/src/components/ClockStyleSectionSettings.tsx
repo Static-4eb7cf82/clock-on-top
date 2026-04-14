@@ -1,16 +1,11 @@
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
-import Divider from "@mui/joy/Divider";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
-import IconButton from "@mui/joy/IconButton";
 import Input from "@mui/joy/Input";
 import Slider from "@mui/joy/Slider";
 import Stack from "@mui/joy/Stack";
-import Tooltip from "@mui/joy/Tooltip";
 import Typography from "@mui/joy/Typography";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import { SETTINGS_DEFAULTS } from "../settings";
 import { ClockStyleSectionProps } from "./SettingsSectionProps";
 import SettingRow from "./SettingRow";
