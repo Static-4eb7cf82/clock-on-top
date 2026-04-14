@@ -2,6 +2,8 @@ import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
 import Switch from "@mui/joy/Switch";
+import Select from "@mui/joy/Select";
+import Option from "@mui/joy/Option";
 import { GeneralSectionProps } from "./SettingsSectionProps";
 import SettingRow from "./SettingRow";
 
@@ -43,6 +45,27 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
                 checked={local.enableAutomaticUpdates}
                 onChange={(e) => update({ enableAutomaticUpdates: e.target.checked })}
               />
+            </Box>
+          </SettingRow>
+
+          <SettingRow
+            label="Theme"
+            isDirty={isDiff("appTheme")}
+            onReset={() => resetOne("appTheme")}
+          >
+            <Box sx={{ display: "flex", justifyContent: "flex-end", minWidth: 120 }}>
+              <Select
+                value={local.appTheme}
+                onChange={(_, value) => {
+                  if (value) update({ appTheme: value as "light" | "dark" | "system" });
+                }}
+                size="sm"
+                sx={{ backgroundColor: "background.level1" }}
+              >
+                <Option value="system">System</Option>
+                <Option value="light">Light</Option>
+                <Option value="dark">Dark</Option>
+              </Select>
             </Box>
           </SettingRow>
         </Stack>

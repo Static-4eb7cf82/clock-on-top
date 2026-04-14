@@ -44,6 +44,7 @@ impl Default for ClockSettings {
 struct GeneralSettings {
     enable_automatic_updates: bool,
     launch_on_startup: bool,
+    app_theme: String,
 }
 
 impl Default for GeneralSettings {
@@ -51,6 +52,7 @@ impl Default for GeneralSettings {
         GeneralSettings {
             enable_automatic_updates: true,
             launch_on_startup: true,
+            app_theme: "system".to_string(),
         }
     }
 }

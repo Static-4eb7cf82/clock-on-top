@@ -14,6 +14,7 @@ export interface ClockSettings {
 export interface GeneralSettings {
   enableAutomaticUpdates: boolean;
   launchOnStartup: boolean;
+  appTheme: "light" | "dark" | "system";
 }
 
 export interface SettingsFile {
@@ -25,6 +26,7 @@ export const SETTINGS_DEFAULTS: SettingsFile = {
   general: {
     enableAutomaticUpdates: true,
     launchOnStartup: true,
+    appTheme: "system",
   },
   clock: {
     fontFamily: "Space Grotesk",
