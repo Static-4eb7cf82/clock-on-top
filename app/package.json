@@ -1,7 +1,8 @@
 {
   "name": "clock-on-top",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.8.1",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
