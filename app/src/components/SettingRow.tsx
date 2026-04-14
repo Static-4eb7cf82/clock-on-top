@@ -3,11 +3,12 @@ import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
 import IconButton from "@mui/joy/IconButton";
 import Tooltip from "@mui/joy/Tooltip";
+import Typography from "@mui/joy/Typography";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 
 interface SettingRowProps {
   label: string;
-  labelAdornment?: React.ReactNode;
+  description?: string;
   isDirty: boolean;
   onReset: () => void;
   children: React.ReactNode;
@@ -15,7 +16,7 @@ interface SettingRowProps {
 
 function SettingRow({
   label,
-  labelAdornment,
+  description,
   isDirty,
   onReset,
   children,
@@ -25,33 +26,47 @@ function SettingRow({
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
-          minHeight: 24,
-          mb: 0.75,
+          gap: 2,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minHeight: 24 }}>
-          <FormLabel
-            sx={{
-              mb: 0,
-              lineHeight: 1,
-              display: "flex",
-              alignItems: "center",
-              minHeight: 24,
-            }}
-          >
-            {label}
-          </FormLabel>
-          {labelAdornment}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 0.5,
+            minWidth: 0,
+            flex: "1 1 0",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minHeight: 24, minWidth: 0 }}>
+            <FormLabel
+              sx={{
+                mb: 0,
+                lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                minHeight: 24,
+                minWidth: 0,
+              }}
+            >
+              {label}
+            </FormLabel>
+          </Box>
+          {description && (
+            <Typography level="body-xs" sx={{ color: "text.tertiary", pr: 1 }}>
+              {description}
+            </Typography>
+          )}
         </Box>
         <Box
           sx={{
-            width: 24,
-            height: 24,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "flex-end",
+            gap: 1,
+            minWidth: 0,
             flexShrink: 0,
           }}
         >
@@ -62,22 +77,14 @@ function SettingRow({
                 color="neutral"
                 variant="soft"
                 onClick={onReset}
-                sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24 }}
+                sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24, flexShrink: 0 }}
               >
                 <RestartAltRoundedIcon sx={{ fontSize: 18 }} />
               </IconButton>
             </Tooltip>
           )}
+          {children}
         </Box>
-      </Box>
-      <Box
-        sx={{
-          width: "60%",
-          ml: "auto",
-          minWidth: 0,
-        }}
-      >
-        {children}
       </Box>
     </FormControl>
   );

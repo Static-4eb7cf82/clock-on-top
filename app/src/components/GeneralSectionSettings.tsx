@@ -23,6 +23,7 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
         <Stack spacing={2.5}>
           <SettingRow
             label="Launch On Startup"
+            description="Launch Clock On Top when your computer starts up"
             isDirty={isDiff("launchOnStartup")}
             onReset={() => resetOne("launchOnStartup")}
           >
@@ -36,10 +37,10 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
 
           <SettingRow
             label="Enable Automatic Updates"
+            description="Automatically download and install updates when the app starts"
             isDirty={isDiff("enableAutomaticUpdates")}
             onReset={() => resetOne("enableAutomaticUpdates")}
           >
-            {/* Temporary fix to align the switch to the right, put it in a Box */}
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Switch
                 checked={local.enableAutomaticUpdates}
@@ -53,14 +54,14 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
             isDirty={isDiff("appTheme")}
             onReset={() => resetOne("appTheme")}
           >
-            <Box sx={{ display: "flex", justifyContent: "flex-end", minWidth: 120 }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Select
                 value={local.appTheme}
                 onChange={(_, value) => {
                   if (value) update({ appTheme: value as "light" | "dark" | "system" });
                 }}
                 size="sm"
-                sx={{ backgroundColor: "background.level1" }}
+                sx={{ backgroundColor: "background.level1", minWidth: 100 }}
               >
                 <Option value="system">System</Option>
                 <Option value="light">Light</Option>

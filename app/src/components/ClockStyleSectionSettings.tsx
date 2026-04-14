@@ -25,6 +25,7 @@ const sliderSlotSx = {
 const sliderSx = {
   my: 0,
   py: 0,
+  minWidth: 200,
 };
 
 interface ColorRowProps {
@@ -97,7 +98,7 @@ function ClockStyleSectionSettings({
           py: 2.5,
         }}
       >
-        <Stack spacing={2.5}>
+        <Stack spacing={5}>
           <SettingRow
             label="Font Family"
             isDirty={isDiff("fontFamily")}
@@ -108,11 +109,9 @@ function ClockStyleSectionSettings({
               value={local.fontFamily}
               onChange={(e) => update({ fontFamily: e.target.value })}
               placeholder="e.g. Space Grotesk"
-              sx={{ fontFamily: `${local.fontFamily}, sans-serif`, backgroundColor: "background.level1" }}
+              sx={{ fontFamily: `${local.fontFamily}, sans-serif`, backgroundColor: "background.level1", minWidth: 250 }}
             />
           </SettingRow>
-
-          <Divider />
 
           <SettingRow
             label="Font Size"
@@ -148,8 +147,6 @@ function ClockStyleSectionSettings({
             </Stack>
           </SettingRow>
 
-          <Divider />
-
           <SettingRow
             label="Text Color & Opacity"
             isDirty={isDiff("foregroundColor") || isDiff("foregroundOpacity")}
@@ -168,8 +165,6 @@ function ClockStyleSectionSettings({
             />
           </SettingRow>
 
-          <Divider />
-
           <SettingRow
             label="Background Color & Opacity"
             isDirty={isDiff("backgroundColor") || isDiff("backgroundOpacity")}
@@ -187,8 +182,6 @@ function ClockStyleSectionSettings({
               onOpacityChange={(v) => update({ backgroundOpacity: v })}
             />
           </SettingRow>
-
-          <Divider />
 
           <SettingRow
             label="Background Border Radius"
@@ -224,52 +217,9 @@ function ClockStyleSectionSettings({
             </Stack>
           </SettingRow>
 
-          <Divider />
-
           <SettingRow
             label="Text Shadow"
-            labelAdornment={
-              <Tooltip
-                size="md"
-                placement="top"
-                variant="outlined"
-                title={
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography level="body-sm" sx={{ color: "text.primary" }}>
-                      Accepts valid text-shadow CSS. Learn more here
-                    </Typography>
-                    <IconButton
-                      size="sm"
-                      component="a"
-                      href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-shadow"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      variant="soft"
-                      color="neutral"
-                      sx={{ minWidth: 22, minHeight: 22, width: 22, height: 22 }}
-                    >
-                      <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Box>
-                }
-              >
-                <IconButton
-                  size="sm"
-                  color="neutral"
-                  variant="plain"
-                  sx={{
-                    minWidth: 22,
-                    minHeight: 22,
-                    width: 22,
-                    height: 22,
-                    cursor: "default",
-                    "&:hover": { cursor: "default" },
-                  }}
-                >
-                  <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Tooltip>
-            }
+            description="Accepts valid text-shadow CSS"
             isDirty={isDiff("textShadow")}
             onReset={() => resetOne("textShadow")}
           >
@@ -278,11 +228,9 @@ function ClockStyleSectionSettings({
               value={local.textShadow}
               placeholder="e.g. 1px 1px 3px rgba(0,0,0,0.5)"
               onChange={(e) => update({ textShadow: e.target.value })}
-              sx={{ backgroundColor: "background.level1" }}
+              sx={{ backgroundColor: "background.level1", minWidth: 250 }}
             />
           </SettingRow>
-
-          <Divider />
 
           <SettingRow
             label="Padding"
