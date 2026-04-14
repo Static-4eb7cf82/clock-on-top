@@ -4,6 +4,39 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "check: frontend build",
+            "type": "shell",
+            "options": {
+                "cwd": "app"
+            },
+            "command": "npm run build",
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "check: tauri cargo",
+            "type": "shell",
+            "options": {
+                "cwd": "app/src-tauri"
+            },
+            "command": "cargo check",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "check: all builds",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "check: frontend build",
+                "check: tauri cargo"
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "run dev",
             "type": "shell",
             "options": {
