@@ -12,7 +12,6 @@ import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
 import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile } from "../settings";
 import ClockStyleSectionSettings from "./ClockStyleSectionSettings";
 import GeneralSectionSettings from "./GeneralSectionSettings";
-import WindowTitleBar from "./WindowTitleBar";
 
 // ── Theme Controller ──────────────────────────────────────────────────────────
 
@@ -127,12 +126,6 @@ function Settings() {
           borderRadius: 0,
         }}
       >
-        <WindowTitleBar
-          title="Settings"
-          closeCommand="close_settings_window"
-          closeButtonVariant="soft"
-        />
-
         <Box
           sx={{
             flex: 1,

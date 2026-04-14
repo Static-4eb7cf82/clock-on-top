@@ -12,7 +12,6 @@ import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import BugReportIcon from "@mui/icons-material/BugReport";
-import WindowTitleBar from "./WindowTitleBar";
 
 const GITHUB_URL = "https://github.com/Static-4eb7cf82/clock-on-top";
 const ISSUES_URL = "https://github.com/Static-4eb7cf82/clock-on-top/issues";
@@ -75,12 +74,6 @@ function About() {
           borderRadius: 0,
         }}
       >
-        <WindowTitleBar
-          title="About"
-          closeCommand="close_about_window"
-          closeButtonVariant="soft"
-        />
-
         {/* ── Content ── */}
         <Box
           sx={{
