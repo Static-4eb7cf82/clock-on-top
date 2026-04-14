@@ -20,6 +20,19 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
       >
         <Stack spacing={2.5}>
           <SettingRow
+            label="Launch On Startup"
+            isDirty={isDiff("launchOnStartup")}
+            onReset={() => resetOne("launchOnStartup")}
+          >
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Switch
+                checked={local.launchOnStartup}
+                onChange={(e) => update({ launchOnStartup: e.target.checked })}
+              />
+            </Box>
+          </SettingRow>
+
+          <SettingRow
             label="Enable Automatic Updates"
             isDirty={isDiff("enableAutomaticUpdates")}
             onReset={() => resetOne("enableAutomaticUpdates")}

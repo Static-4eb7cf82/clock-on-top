@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::Emitter;
 use tauri::Manager;
+use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 use tauri_plugin_updater::UpdaterExt;
 
 // ── Settings type ─────────────────────────────────────────────────────────────
@@ -42,12 +43,14 @@ impl Default for ClockSettings {
 #[serde(rename_all = "camelCase", default)]
 struct GeneralSettings {
     enable_automatic_updates: bool,
+    launch_on_startup: bool,
 }
 
 impl Default for GeneralSettings {
     fn default() -> Self {
         GeneralSettings {
             enable_automatic_updates: true,
+            launch_on_startup: true,
         }
     }
 }
@@ -205,8 +208,22 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
 
     let content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(&path, content).map_err(|e| e.to_string())?;
+
+    if let Err(error) = apply_launch_on_startup(&app, settings.general.launch_on_startup) {
+        println!("WARN Failed to set launch on startup: {error}");
+    }
+
     app.emit("settings-updated", &settings)
         .map_err(|e| e.to_string())
+}
+
+fn apply_launch_on_startup(app: &tauri::AppHandle, launch_on_startup: bool) -> Result<(), String> {
+    let autolaunch = app.autolaunch();
+    if launch_on_startup {
+        autolaunch.enable().map_err(|e| e.to_string())
+    } else {
+        autolaunch.disable().map_err(|e| e.to_string())
+    }
 }
 
 fn is_valid_hex_color(color: &str) -> bool {
@@ -311,6 +328,10 @@ fn close_about_window(window: tauri::WebviewWindow) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None::<Vec<&str>>,
+        ))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
@@ -327,6 +348,13 @@ pub fn run() {
                 println!("ERROR Failed to validate settings, using defaults: {error}");
                 SettingsFile::default()
             });
+
+            if let Err(error) =
+                apply_launch_on_startup(app.handle(), settings.general.launch_on_startup)
+            {
+                println!("WARN Failed to apply launch on startup setting: {error}");
+            }
+
             let enable_automatic_updates = settings.general.enable_automatic_updates;
 
             let app_handle = app.handle().clone();

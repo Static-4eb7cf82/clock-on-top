@@ -13,6 +13,7 @@ export interface ClockSettings {
 
 export interface GeneralSettings {
   enableAutomaticUpdates: boolean;
+  launchOnStartup: boolean;
 }
 
 export interface SettingsFile {
@@ -23,6 +24,7 @@ export interface SettingsFile {
 export const SETTINGS_DEFAULTS: SettingsFile = {
   general: {
     enableAutomaticUpdates: true,
+    launchOnStartup: true,
   },
   clock: {
     fontFamily: "Space Grotesk",
