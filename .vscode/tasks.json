@@ -37,6 +37,16 @@
             "problemMatcher": []
         },
         {
+            "label": "build: production",
+            "type": "shell",
+            "options": {
+                "cwd": "app"
+            },
+            "command": "mise exec -- npm run tauri build",
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
             "label": "run dev",
             "type": "shell",
             "options": {
