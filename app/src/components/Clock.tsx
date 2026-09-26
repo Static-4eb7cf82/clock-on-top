@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import useSettings from "../hooks/useSettings";
 import { hexToRgba } from "../settings";
-import { useDragFix } from "../utils/dragFix";
 
 function Clock() {
   const [now, setNow] = useState(() => new Date());
+  const [isDragging, setIsDragging] = useState(false);
   const clockRef = useRef<HTMLDivElement>(null);
   const settings = useSettings();
-  const { isDragging, handleMouseDown, handleMouseUp } = useDragFix(10);
 
   const hours = now.getHours();
   const minutes = now.getMinutes();
@@ -16,18 +16,27 @@ function Clock() {
   const displayMinutes = minutes.toString().padStart(2, "0");
   const clockDisplayString = `${displayHours}:${displayMinutes} ${hours >= 12 ? "PM" : "AM"}`;
 
-  const resizeWindowToClock = () => {
+  const resizeWindowToClock = async () => {
     if (!clockRef.current) {
       return;
     }
+
     const rect = clockRef.current.getBoundingClientRect();
-    const width = Math.ceil(rect.width);
-    const height = Math.ceil(rect.height);
-    console.log("Resizing window to:", width, height);
-    invoke<void>("resize_window", {
-      width,
-      height,
-    }).catch((e) => console.error("Failed to resize window:", e));
+    try {
+      const scaleFactor = await getCurrentWindow().scaleFactor();
+      const cssToLogicalScale = window.devicePixelRatio / scaleFactor;
+      const width = Math.ceil(rect.width * cssToLogicalScale);
+      const height = Math.ceil(rect.height * cssToLogicalScale);
+      console.log("Resizing window to:", {
+        width,
+        height,
+        devicePixelRatio: window.devicePixelRatio,
+        scaleFactor,
+      });
+      await invoke<void>("resize_window", { width, height });
+    } catch (e) {
+      console.error("Failed to resize window:", e);
+    }
   };
 
   useEffect(() => {
@@ -53,6 +62,20 @@ function Clock() {
     e.preventDefault();
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) {
+      return;
+    }
+
+    e.preventDefault();
+    setIsDragging(true);
+    getCurrentWindow()
+      .startDragging()
+      .then(() => invoke<void>("wait_for_left_mouse_button_release"))
+      .catch((error) => console.error("Failed to drag clock:", error))
+      .finally(() => setIsDragging(false));
+  };
+
   return (
     <div
         ref={clockRef}
@@ -67,7 +90,6 @@ function Clock() {
           padding: `${settings.clock.paddingVertical} ${settings.clock.paddingHorizontal}`,
         }}
         onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
         onContextMenu={handleContextMenu}
       >
         {clockDisplayString}

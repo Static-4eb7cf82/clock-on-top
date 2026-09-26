@@ -27,6 +27,7 @@ body {
 }
 
 .clock {
+  width: max-content;
   font-weight: 600;
   letter-spacing: 0.08em;
   border-radius: 8px;
@@ -39,3 +40,4 @@ body {
 .clock.dragging {
   cursor: grabbing;
 }
+

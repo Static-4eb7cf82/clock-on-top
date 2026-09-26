@@ -233,6 +233,22 @@ fn resize_window(window: tauri::WebviewWindow, width: f64, height: f64) -> Resul
 }
 
 #[tauri::command]
+async fn wait_for_left_mouse_button_release() {
+    #[cfg(target_os = "windows")]
+    {
+        use std::{thread, time::Duration};
+        use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+
+        let _ = tauri::async_runtime::spawn_blocking(|| {
+            while unsafe { GetAsyncKeyState(VK_LBUTTON as i32) < 0 } {
+                thread::sleep(Duration::from_millis(16));
+            }
+        })
+        .await;
+    }
+}
+
+#[tauri::command]
 fn read_settings(app: tauri::AppHandle) -> Result<SettingsFile, String> {
     let path = settings_path(&app)?;
     if !path.exists() {
@@ -371,6 +387,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             resize_window,
+            wait_for_left_mouse_button_release,
             read_settings,
             write_settings,
             open_settings_window,

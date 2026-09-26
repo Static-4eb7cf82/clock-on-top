@@ -484,7 +484,7 @@ dependencies = [
 
 [[package]]
 name = "clock-on-top"
-version = "0.8.1"
+version = "0.8.2"
 dependencies = [
  "dirs 5.0.1",
  "serde",
@@ -494,6 +494,7 @@ dependencies = [
  "tauri-plugin-autostart",
  "tauri-plugin-opener",
  "tauri-plugin-updater",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
