@@ -3,7 +3,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import useSettings from "../hooks/useSettings";
 import { hexToRgba } from "../settings";
-import { useDragFix } from "../utils/dragFix";
 
 function Clock() {
   const [now, setNow] = useState(() => new Date());
@@ -17,18 +16,27 @@ function Clock() {
   const displayMinutes = minutes.toString().padStart(2, "0");
   const clockDisplayString = `${displayHours}:${displayMinutes} ${hours >= 12 ? "PM" : "AM"}`;
 
-  const resizeWindowToClock = () => {
+  const resizeWindowToClock = async () => {
     if (!clockRef.current) {
       return;
     }
+
     const rect = clockRef.current.getBoundingClientRect();
-    const width = Math.ceil(rect.width);
-    const height = Math.ceil(rect.height);
-    console.log("Resizing window to:", width, height);
-    invoke<void>("resize_window", {
-      width,
-      height,
-    }).catch((e) => console.error("Failed to resize window:", e));
+    try {
+      const scaleFactor = await getCurrentWindow().scaleFactor();
+      const cssToLogicalScale = window.devicePixelRatio / scaleFactor;
+      const width = Math.ceil(rect.width * cssToLogicalScale);
+      const height = Math.ceil(rect.height * cssToLogicalScale);
+      console.log("Resizing window to:", {
+        width,
+        height,
+        devicePixelRatio: window.devicePixelRatio,
+        scaleFactor,
+      });
+      await invoke<void>("resize_window", { width, height });
+    } catch (e) {
+      console.error("Failed to resize window:", e);
+    }
   };
 
   useEffect(() => {
