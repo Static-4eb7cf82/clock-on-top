@@ -68,8 +68,6 @@ function About() {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: "background.level1",
-          color: "text.primary",
           overflow: "hidden",
           borderRadius: 0,
         }}

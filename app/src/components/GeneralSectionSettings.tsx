@@ -61,7 +61,7 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
                   if (value) update({ appTheme: value as "light" | "dark" | "system" });
                 }}
                 size="sm"
-                sx={{ backgroundColor: "background.level1", minWidth: 100 }}
+                sx={{ minWidth: 100 }}
               >
                 <Option value="system">System</Option>
                 <Option value="light">Light</Option>
@@ -84,7 +84,7 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
         }}
       >
         <Button color="neutral" variant="outlined" size="sm" onClick={onResetAll}>
-          Reset All to Defaults
+          Reset Page to Defaults
         </Button>
       </Box>
     </Box>

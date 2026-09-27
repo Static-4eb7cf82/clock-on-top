@@ -120,8 +120,6 @@ function Settings() {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: "background.level1",
-          color: "text.primary",
           overflow: "hidden",
           borderRadius: 0,
         }}
@@ -135,25 +133,23 @@ function Settings() {
           }}
         >
           <Sheet
-            variant="soft"
             sx={{
-              width: 200,
+              width: 220,
               borderRight: "1px solid",
               borderColor: "divider",
               p: 1,
               flexShrink: 0,
-              bgcolor: "neutral.softBg",
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               <Button
                 fullWidth
                 size="sm"
                 color="neutral"
-                variant="soft"
+                variant="plain"
                 startDecorator={<TuneRoundedIcon sx={{ color: activeSection === "general" ? "neutral.softActiveColor" : undefined }} />}
                 onClick={() => setActiveSection("general")}
-                sx={{ justifyContent: "flex-start", bgcolor: activeSection === "general" ? "neutral.softHoverBg" : undefined }}
+                sx={{ justifyContent: "flex-start", bgcolor: activeSection === "general" ? "neutral.plainHoverBg" : undefined }}
               >
                 <Typography level="body-sm" sx={{ color: activeSection === "general" ? "neutral.softActiveColor" : undefined }}>
                   General
@@ -163,10 +159,10 @@ function Settings() {
                 fullWidth
                 size="sm"
                 color="neutral"
-                variant="soft"
+                variant="plain"
                 startDecorator={<PaletteRoundedIcon sx={{ color: activeSection === "clock-style" ? "neutral.softActiveColor" : undefined }} />}
                 onClick={() => setActiveSection("clock-style")}
-                sx={{ justifyContent: "flex-start", bgcolor: activeSection === "clock-style" ? "neutral.softHoverBg" : undefined }}
+                sx={{ justifyContent: "flex-start", bgcolor: activeSection === "clock-style" ? "neutral.plainHoverBg" : undefined }}
               >
                 <Typography level="body-sm" sx={{ color: activeSection === "clock-style" ? "neutral.softActiveColor" : undefined }}>
                   Clock Style
