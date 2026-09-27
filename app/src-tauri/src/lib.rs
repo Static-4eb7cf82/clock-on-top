@@ -142,6 +142,76 @@ impl VisibilityController {
     }
 }
 
+#[derive(Clone)]
+struct ScheduleMenuChecks {
+    off: tauri::menu::CheckMenuItem<tauri::Wry>,
+    brief_intervals: [tauri::menu::CheckMenuItem<tauri::Wry>; 4],
+    flash_intervals: [tauri::menu::CheckMenuItem<tauri::Wry>; 4],
+}
+
+impl ScheduleMenuChecks {
+    fn new(app: &tauri::App, settings: &VisibilitySettings) -> tauri::Result<Self> {
+        use tauri::menu::CheckMenuItem;
+
+        let active = settings.schedule_interval_minutes > 0;
+        let off = CheckMenuItem::with_id(app, "schedule_off", "Off", true, !active, None::<&str>)?;
+        let build_intervals = |mode: &'static str, mode_is_active: bool| {
+            let make_item = |interval, label| {
+                CheckMenuItem::with_id(
+                    app,
+                    format!("schedule_{mode}_{interval}"),
+                    label,
+                    true,
+                    mode_is_active && settings.schedule_interval_minutes == interval,
+                    None::<&str>,
+                )
+            };
+            Ok::<_, tauri::Error>([
+                make_item(15, "Every 15 minutes")?,
+                make_item(30, "Every 30 minutes")?,
+                make_item(45, "At :45 each hour")?,
+                make_item(60, "Every hour")?,
+            ])
+        };
+
+        Ok(Self {
+            off,
+            brief_intervals: build_intervals(
+                "brief",
+                active && settings.schedule_mode == ScheduleMode::BriefShow,
+            )?,
+            flash_intervals: build_intervals(
+                "flash",
+                active && settings.schedule_mode == ScheduleMode::Flash,
+            )?,
+        })
+    }
+
+    fn update(&self, settings: &VisibilitySettings) {
+        let active = settings.schedule_interval_minutes > 0;
+        if let Err(error) = self.off.set_checked(!active) {
+            println!("WARN Failed to update schedule menu checkmark: {error}");
+        }
+
+        for (interval, item) in [15, 30, 45, 60].into_iter().zip(&self.brief_intervals) {
+            let checked = active
+                && settings.schedule_interval_minutes == interval
+                && settings.schedule_mode == ScheduleMode::BriefShow;
+            if let Err(error) = item.set_checked(checked) {
+                println!("WARN Failed to update schedule menu checkmark: {error}");
+            }
+        }
+        for (interval, item) in [15, 30, 45, 60].into_iter().zip(&self.flash_intervals) {
+            let checked = active
+                && settings.schedule_interval_minutes == interval
+                && settings.schedule_mode == ScheduleMode::Flash;
+            if let Err(error) = item.set_checked(checked) {
+                println!("WARN Failed to update schedule menu checkmark: {error}");
+            }
+        }
+    }
+}
+
 fn settings_path(_app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let home_dir = dirs::home_dir().ok_or_else(|| "Cannot determine home directory".to_string())?;
     Ok(home_dir.join(".clockontop").join("settings.json"))
@@ -404,7 +474,7 @@ async fn check_for_updates(app_handle: tauri::AppHandle, enable_automatic_update
     true
 }
 
-fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
+fn setup_system_tray(app: &tauri::App, settings: &SettingsFile) -> tauri::Result<()> {
     let show_item = tauri::menu::MenuItemBuilder::with_id("clock_show", "Show").build(app)?;
     let hide_15_item =
         tauri::menu::MenuItemBuilder::with_id("hide_15", "For 15 minutes").build(app)?;
@@ -417,43 +487,22 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
         .item(&hide_30_item)
         .item(&hide_60_item)
         .build()?;
-    let schedule_off = tauri::menu::MenuItemBuilder::with_id("schedule_off", "Off").build(app)?;
-    let schedule_flash_15 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_15", "Every 15 minutes")
-            .build(app)?;
-    let schedule_flash_30 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_30", "Every 30 minutes")
-            .build(app)?;
-    let schedule_flash_45 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_45", "At :45 each hour")
-            .build(app)?;
-    let schedule_flash_60 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_60", "Every hour").build(app)?;
-    let schedule_brief_15 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_brief_15", "Every 15 minutes")
-            .build(app)?;
-    let schedule_brief_30 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_brief_30", "Every 30 minutes")
-            .build(app)?;
-    let schedule_brief_45 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_brief_45", "At :45 each hour")
-            .build(app)?;
-    let schedule_brief_60 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_brief_60", "Every hour").build(app)?;
+    let schedule_checks = ScheduleMenuChecks::new(app, &settings.visibility)?;
+    app.manage(schedule_checks.clone());
     let schedule_brief_submenu = tauri::menu::SubmenuBuilder::new(app, "Hide and show briefly")
-        .item(&schedule_brief_15)
-        .item(&schedule_brief_30)
-        .item(&schedule_brief_45)
-        .item(&schedule_brief_60)
+        .item(&schedule_checks.brief_intervals[0])
+        .item(&schedule_checks.brief_intervals[1])
+        .item(&schedule_checks.brief_intervals[2])
+        .item(&schedule_checks.brief_intervals[3])
         .build()?;
     let schedule_flash_submenu = tauri::menu::SubmenuBuilder::new(app, "Keep visible and flash")
-        .item(&schedule_flash_15)
-        .item(&schedule_flash_30)
-        .item(&schedule_flash_45)
-        .item(&schedule_flash_60)
+        .item(&schedule_checks.flash_intervals[0])
+        .item(&schedule_checks.flash_intervals[1])
+        .item(&schedule_checks.flash_intervals[2])
+        .item(&schedule_checks.flash_intervals[3])
         .build()?;
     let schedule_submenu = tauri::menu::SubmenuBuilder::new(app, "Schedule...")
-        .item(&schedule_off)
+        .item(&schedule_checks.off)
         .item(&schedule_brief_submenu)
         .item(&schedule_flash_submenu)
         .build()?;
@@ -597,6 +646,9 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
                 println!("WARN Failed to apply schedule visibility: {error}");
             }
         }
+    }
+    if let Some(schedule_checks) = app.try_state::<ScheduleMenuChecks>() {
+        schedule_checks.update(&settings.visibility);
     }
 
     if let Err(error) = apply_launch_on_startup(&app, settings.general.launch_on_startup) {
@@ -774,7 +826,7 @@ pub fn run() {
                 }
             });
 
-            setup_system_tray(app)?;
+            setup_system_tray(app, &settings)?;
             start_schedule_worker(app.handle().clone());
 
             Ok(())
