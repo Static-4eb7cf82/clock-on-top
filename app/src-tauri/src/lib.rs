@@ -951,12 +951,14 @@ pub fn run() {
             }
 
             let enable_automatic_updates = settings.general.enable_automatic_updates;
+            let start_with_clock_hidden = settings.visibility.schedule_interval_minutes > 0
+                && settings.visibility.schedule_mode == ScheduleMode::BriefShow;
 
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 let performing_update =
                     check_for_updates(app_handle.clone(), enable_automatic_updates).await;
-                if !performing_update {
+                if !performing_update && !start_with_clock_hidden {
                     if let Some(clock_window) = app_handle.get_webview_window("clock") {
                         let _ = clock_window.center();
                         let _ = clock_window.show();
