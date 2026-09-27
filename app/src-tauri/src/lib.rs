@@ -419,45 +419,43 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
         .build()?;
     let schedule_off = tauri::menu::MenuItemBuilder::with_id("schedule_off", "Off").build(app)?;
     let schedule_flash_15 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_15", "Flash every 15 minutes")
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_15", "Every 15 minutes")
             .build(app)?;
     let schedule_flash_30 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_30", "Flash every 30 minutes")
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_30", "Every 30 minutes")
             .build(app)?;
     let schedule_flash_45 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_45", "Flash at :45 each hour")
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_45", "At :45 each hour")
             .build(app)?;
     let schedule_flash_60 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_flash_60", "Flash every hour")
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_60", "Every hour").build(app)?;
+    let schedule_brief_15 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_brief_15", "Every 15 minutes")
             .build(app)?;
-    let schedule_brief_15 = tauri::menu::MenuItemBuilder::with_id(
-        "schedule_brief_15",
-        "Hide; show briefly every 15 minutes",
-    )
-    .build(app)?;
-    let schedule_brief_30 = tauri::menu::MenuItemBuilder::with_id(
-        "schedule_brief_30",
-        "Hide; show briefly every 30 minutes",
-    )
-    .build(app)?;
-    let schedule_brief_45 = tauri::menu::MenuItemBuilder::with_id(
-        "schedule_brief_45",
-        "Hide; show briefly at :45 each hour",
-    )
-    .build(app)?;
+    let schedule_brief_30 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_brief_30", "Every 30 minutes")
+            .build(app)?;
+    let schedule_brief_45 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_brief_45", "At :45 each hour")
+            .build(app)?;
     let schedule_brief_60 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_brief_60", "Hide; show briefly every hour")
-            .build(app)?;
-    let schedule_submenu = tauri::menu::SubmenuBuilder::new(app, "Schedule")
-        .item(&schedule_off)
-        .item(&schedule_flash_15)
-        .item(&schedule_flash_30)
-        .item(&schedule_flash_45)
-        .item(&schedule_flash_60)
+        tauri::menu::MenuItemBuilder::with_id("schedule_brief_60", "Every hour").build(app)?;
+    let schedule_brief_submenu = tauri::menu::SubmenuBuilder::new(app, "Hide and show briefly")
         .item(&schedule_brief_15)
         .item(&schedule_brief_30)
         .item(&schedule_brief_45)
         .item(&schedule_brief_60)
+        .build()?;
+    let schedule_flash_submenu = tauri::menu::SubmenuBuilder::new(app, "Keep visible and flash")
+        .item(&schedule_flash_15)
+        .item(&schedule_flash_30)
+        .item(&schedule_flash_45)
+        .item(&schedule_flash_60)
+        .build()?;
+    let schedule_submenu = tauri::menu::SubmenuBuilder::new(app, "Schedule...")
+        .item(&schedule_off)
+        .item(&schedule_brief_submenu)
+        .item(&schedule_flash_submenu)
         .build()?;
     let about_clock_item =
         tauri::menu::MenuItemBuilder::with_id("about_window", "About Clock On Top...")
