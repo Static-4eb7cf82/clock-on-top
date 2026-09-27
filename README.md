@@ -11,6 +11,7 @@ A lightweight, draggable clock that stays on top of all your windows.
 - **Draggable**: Click and drag to position the clock anywhere on your screen
 - **Clean Design**: Simple, readable 12-hour time format
 - **Customizable**: Change the appearance of the clock, including font, color, background, and size
+- **Visibility Controls**: Show the clock on demand, hide it temporarily, or schedule recurring brief appearances or flashes
 - **Lightweight**: Built with Tauri for minimal resource usage
 
 ## Installation
