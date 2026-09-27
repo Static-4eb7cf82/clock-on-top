@@ -13,6 +13,7 @@ function Clock() {
   const [isFlashing, setIsFlashing] = useState(false);
   const clockRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<number>();
+  const resizeRequestRef = useRef(0);
   const settings = useSettings();
 
   const hours = now.getHours();
@@ -22,13 +23,12 @@ function Clock() {
   const clockDisplayString = `${displayHours}:${displayMinutes} ${hours >= 12 ? "PM" : "AM"}`;
 
   const resizeWindowToClock = async () => {
-    if (!clockRef.current) {
-      return;
-    }
-
-    const rect = clockRef.current.getBoundingClientRect();
+    const request = ++resizeRequestRef.current;
     try {
       const scaleFactor = await getCurrentWindow().scaleFactor();
+      if (request !== resizeRequestRef.current || !clockRef.current) return;
+
+      const rect = clockRef.current.getBoundingClientRect();
       const cssToLogicalScale = window.devicePixelRatio / scaleFactor;
       const width = Math.ceil(rect.width * cssToLogicalScale);
       const height = Math.ceil(rect.height * cssToLogicalScale);
@@ -106,15 +106,31 @@ function Clock() {
   }, [settings.visibility.fadeOutDurationMs]);
 
   useEffect(() => {
-    resizeWindowToClock();
-    if (document.fonts?.ready) {
-      document.fonts.ready.then(resizeWindowToClock).catch(() => undefined);
-    }
-  }, []);
+    let cancelled = false;
+    const resizeAfterFontLoad = async () => {
+      const element = clockRef.current;
+      if (element && document.fonts?.load) {
+        await document.fonts.load(getComputedStyle(element).font, clockDisplayString);
+      }
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (!cancelled) await resizeWindowToClock();
+    };
 
-  useEffect(() => {
-    resizeWindowToClock();
-  }, [clockDisplayString, settings.clock.fontFamily, settings.clock.fontSize, settings.clock.paddingVertical, settings.clock.paddingHorizontal]);
+    resizeAfterFontLoad().catch((error) => {
+      console.error("Failed to prepare clock layout:", error);
+    });
+
+    return () => {
+      cancelled = true;
+      resizeRequestRef.current += 1;
+    };
+  }, [
+    clockDisplayString,
+    settings.clock.fontFamily,
+    settings.clock.fontSize,
+    settings.clock.paddingVertical,
+    settings.clock.paddingHorizontal,
+  ]);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
