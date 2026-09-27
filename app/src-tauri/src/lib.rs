@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::Mutex;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::webview::PageLoadEvent;
 use tauri::Emitter;
@@ -212,6 +213,46 @@ impl ScheduleMenuChecks {
     }
 }
 
+struct ClockStatusMenuItem {
+    menu: tauri::menu::Menu<tauri::Wry>,
+    item: tauri::menu::MenuItem<tauri::Wry>,
+    is_attached: Mutex<bool>,
+    text: Mutex<String>,
+}
+
+impl ClockStatusMenuItem {
+    fn update(&self, text: Option<&str>) {
+        let Ok(mut is_attached) = self.is_attached.lock() else {
+            return;
+        };
+        if let Some(text) = text {
+            if !*is_attached {
+                if let Err(error) = self.menu.insert(&self.item, 0) {
+                    println!("WARN Failed to add clock status menu item: {error}");
+                    return;
+                }
+                *is_attached = true;
+            }
+
+            let Ok(mut current_text) = self.text.lock() else {
+                return;
+            };
+            if current_text.as_str() != text {
+                if let Err(error) = self.item.set_text(text) {
+                    println!("WARN Failed to update clock status menu item: {error}");
+                    return;
+                }
+                *current_text = text.to_string();
+            }
+        } else if *is_attached {
+            if let Err(error) = self.menu.remove(&self.item) {
+                println!("WARN Failed to remove clock status menu item: {error}");
+            }
+            *is_attached = false;
+        }
+    }
+}
+
 fn settings_path(_app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let home_dir = dirs::home_dir().ok_or_else(|| "Cannot determine home directory".to_string())?;
     Ok(home_dir.join(".clockontop").join("settings.json"))
@@ -294,6 +335,87 @@ fn unix_time_seconds() -> u64 {
         .as_secs()
 }
 
+fn local_clock_time() -> (u32, u32, u32) {
+    #[cfg(target_os = "windows")]
+    {
+        use windows_sys::Win32::Foundation::SYSTEMTIME;
+        use windows_sys::Win32::System::SystemInformation::GetLocalTime;
+        let mut time: SYSTEMTIME = unsafe { std::mem::zeroed() };
+        unsafe { GetLocalTime(&mut time) };
+        return (time.wHour as u32, time.wMinute as u32, time.wSecond as u32);
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let seconds = unix_time_seconds() % 86_400;
+        (
+            (seconds / 3_600) as u32,
+            ((seconds / 60) % 60) as u32,
+            (seconds % 60) as u32,
+        )
+    }
+}
+
+fn format_clock_time(hour: u32, minute: u32) -> String {
+    let display_hour = match hour % 12 {
+        0 => 12,
+        hour => hour,
+    };
+    format!(
+        "{display_hour}:{minute:02} {}",
+        if hour < 12 { "AM" } else { "PM" }
+    )
+}
+
+fn next_schedule_time(interval: u64, hour: u32, minute: u32) -> Option<(u32, u32)> {
+    let minute_of_day = hour * 60 + minute;
+    let target_minute = match interval {
+        15 | 30 => ((minute_of_day / interval as u32) + 1) * interval as u32,
+        45 => hour * 60 + if minute < 45 { 45 } else { 105 },
+        60 => (hour + 1) * 60,
+        _ => return None,
+    } % (24 * 60);
+    Some((target_minute / 60, target_minute % 60))
+}
+
+fn next_show_text(app: &tauri::AppHandle) -> Option<String> {
+    let is_visible = app
+        .get_webview_window("clock")
+        .and_then(|window| window.is_visible().ok())
+        .unwrap_or(false);
+    if is_visible {
+        return None;
+    }
+
+    let controller = app.state::<VisibilityController>();
+    let now = unix_time_seconds();
+    let hide_deadline = controller.suppress_schedules_until.load(Ordering::SeqCst);
+    let (prefix, hour, minute) = if hide_deadline > now {
+        let (hour, minute, second) = local_clock_time();
+        let seconds_of_day = hour * 3_600 + minute * 60 + second;
+        let target = (seconds_of_day + (hide_deadline - now) as u32) % 86_400;
+        ("Hidden until", target / 3_600, (target / 60) % 60)
+    } else {
+        let (hour, minute, _) = local_clock_time();
+        match next_schedule_time(
+            controller.schedule_interval_minutes.load(Ordering::SeqCst),
+            hour,
+            minute,
+        ) {
+            Some((hour, minute)) => ("Hidden; next", hour, minute),
+            None => return Some("Hidden; no next show".to_string()),
+        }
+    };
+
+    Some(format!("{prefix} {}", format_clock_time(hour, minute)))
+}
+
+fn update_clock_status(app: &tauri::AppHandle) {
+    if let Some(status_item) = app.try_state::<ClockStatusMenuItem>() {
+        status_item.update(next_show_text(app).as_deref());
+    }
+}
+
 fn local_minute_mark() -> (u32, u64) {
     #[cfg(target_os = "windows")]
     {
@@ -320,6 +442,7 @@ fn start_schedule_worker(app: tauri::AppHandle) {
     std::thread::spawn(move || {
         let mut last_checked_minute = None;
         loop {
+            update_clock_status(&app);
             let (minute, minute_key) = local_minute_mark();
             let controller = app.state::<VisibilityController>();
             let interval = controller.schedule_interval_minutes.load(Ordering::SeqCst);
@@ -476,6 +599,13 @@ async fn check_for_updates(app_handle: tauri::AppHandle, enable_automatic_update
 
 fn setup_system_tray(app: &tauri::App, settings: &SettingsFile) -> tauri::Result<()> {
     let show_item = tauri::menu::MenuItemBuilder::with_id("clock_show", "Show").build(app)?;
+    let clock_status_item = tauri::menu::MenuItem::with_id(
+        app,
+        "clock_status",
+        "Hidden; no next show",
+        false,
+        None::<&str>,
+    )?;
     let hide_15_item =
         tauri::menu::MenuItemBuilder::with_id("hide_15", "For 15 minutes").build(app)?;
     let hide_30_item =
@@ -529,6 +659,14 @@ fn setup_system_tray(app: &tauri::App, settings: &SettingsFile) -> tauri::Result
         .item(&separator)
         .item(&quit_item)
         .build()?;
+
+    app.manage(ClockStatusMenuItem {
+        menu: menu.clone(),
+        item: clock_status_item,
+        is_attached: Mutex::new(false),
+        text: Mutex::new(String::new()),
+    });
+    update_clock_status(app.handle());
 
     tauri::tray::TrayIconBuilder::new()
         .menu(&menu)
