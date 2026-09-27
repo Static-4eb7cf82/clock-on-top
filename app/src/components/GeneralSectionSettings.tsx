@@ -51,6 +51,7 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
 
           <SettingRow
             label="Theme"
+            description="Applies to Settings and other app windows, not the clock"
             isDirty={isDiff("appTheme")}
             onReset={() => resetOne("appTheme")}
           >
