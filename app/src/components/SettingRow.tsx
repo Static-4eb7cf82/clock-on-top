@@ -74,7 +74,7 @@ function SettingRow({
             <Tooltip title="Reset to default" size="md" placement="top" variant="outlined">
               <IconButton
                 size="sm"
-                color="neutral"
+                color="warning"
                 variant="soft"
                 onClick={onReset}
                 sx={{ minWidth: 24, minHeight: 24, width: 24, height: 24, flexShrink: 0 }}

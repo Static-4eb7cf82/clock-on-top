@@ -14,19 +14,39 @@ export interface ClockSettings {
 export interface GeneralSettings {
   enableAutomaticUpdates: boolean;
   launchOnStartup: boolean;
+  rememberClockPosition: boolean;
   appTheme: "light" | "dark" | "system";
+}
+
+export type ScheduleMode = "flash" | "briefShow";
+
+export interface VisibilitySettings {
+  fadeInDurationMs: number;
+  fadeOutDurationMs: number;
+  scheduledShowDurationSeconds: number;
+  scheduleIntervalMinutes: number;
+  scheduleMode: ScheduleMode;
 }
 
 export interface SettingsFile {
   general: GeneralSettings;
   clock: ClockSettings;
+  visibility: VisibilitySettings;
 }
 
 export const SETTINGS_DEFAULTS: SettingsFile = {
   general: {
     enableAutomaticUpdates: true,
     launchOnStartup: true,
+    rememberClockPosition: true,
     appTheme: "system",
+  },
+  visibility: {
+    fadeInDurationMs: 250,
+    fadeOutDurationMs: 250,
+    scheduledShowDurationSeconds: 60,
+    scheduleIntervalMinutes: 0,
+    scheduleMode: "briefShow",
   },
   clock: {
     fontFamily: "Space Grotesk",

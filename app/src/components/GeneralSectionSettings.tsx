@@ -51,6 +51,7 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
 
           <SettingRow
             label="Theme"
+            description="Applies to Settings and other app windows, not the clock"
             isDirty={isDiff("appTheme")}
             onReset={() => resetOne("appTheme")}
           >
@@ -61,12 +62,26 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
                   if (value) update({ appTheme: value as "light" | "dark" | "system" });
                 }}
                 size="sm"
-                sx={{ backgroundColor: "background.level1", minWidth: 100 }}
+                sx={{ minWidth: 100 }}
               >
                 <Option value="system">System</Option>
                 <Option value="light">Light</Option>
                 <Option value="dark">Dark</Option>
               </Select>
+            </Box>
+          </SettingRow>
+
+          <SettingRow
+            label="Remember Clock Position"
+            description="Restore the clock to its last position when the app starts"
+            isDirty={isDiff("rememberClockPosition")}
+            onReset={() => resetOne("rememberClockPosition")}
+          >
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Switch
+                checked={local.rememberClockPosition}
+                onChange={(e) => update({ rememberClockPosition: e.target.checked })}
+              />
             </Box>
           </SettingRow>
         </Stack>
@@ -84,7 +99,7 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
         }}
       >
         <Button color="neutral" variant="outlined" size="sm" onClick={onResetAll}>
-          Reset All to Defaults
+          Reset Page to Defaults
         </Button>
       </Box>
     </Box>
