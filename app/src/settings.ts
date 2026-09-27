@@ -14,6 +14,7 @@ export interface ClockSettings {
 export interface GeneralSettings {
   enableAutomaticUpdates: boolean;
   launchOnStartup: boolean;
+  rememberClockPosition: boolean;
   appTheme: "light" | "dark" | "system";
 }
 
@@ -37,6 +38,7 @@ export const SETTINGS_DEFAULTS: SettingsFile = {
   general: {
     enableAutomaticUpdates: true,
     launchOnStartup: true,
+    rememberClockPosition: true,
     appTheme: "system",
   },
   visibility: {

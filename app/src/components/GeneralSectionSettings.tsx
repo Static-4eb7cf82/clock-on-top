@@ -69,6 +69,20 @@ function GeneralSectionSettings({ local, update, resetOne, isDiff, onResetAll }:
               </Select>
             </Box>
           </SettingRow>
+
+          <SettingRow
+            label="Remember Clock Position"
+            description="Restore the clock to its last position when the app starts"
+            isDirty={isDiff("rememberClockPosition")}
+            onReset={() => resetOne("rememberClockPosition")}
+          >
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Switch
+                checked={local.rememberClockPosition}
+                onChange={(e) => update({ rememberClockPosition: e.target.checked })}
+              />
+            </Box>
+          </SettingRow>
         </Stack>
       </Box>
 

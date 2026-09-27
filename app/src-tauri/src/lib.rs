@@ -50,6 +50,7 @@ impl Default for ClockSettings {
 struct GeneralSettings {
     enable_automatic_updates: bool,
     launch_on_startup: bool,
+    remember_clock_position: bool,
     app_theme: String,
 }
 
@@ -58,10 +59,19 @@ impl Default for GeneralSettings {
         GeneralSettings {
             enable_automatic_updates: true,
             launch_on_startup: true,
+            remember_clock_position: true,
             app_theme: "system".to_string(),
         }
     }
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct ClockPosition {
+    x: i32,
+    y: i32,
+}
+
+struct ClockPositionController(AtomicBool);
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -256,6 +266,31 @@ impl ClockStatusMenuItem {
 fn settings_path(_app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let home_dir = dirs::home_dir().ok_or_else(|| "Cannot determine home directory".to_string())?;
     Ok(home_dir.join(".clockontop").join("settings.json"))
+}
+
+fn clock_position_path() -> Result<PathBuf, String> {
+    let home_dir = dirs::home_dir().ok_or_else(|| "Cannot determine home directory".to_string())?;
+    Ok(home_dir.join(".clockontop").join("clock-position.json"))
+}
+
+fn save_clock_position(position: ClockPosition) -> Result<(), String> {
+    let path = clock_position_path()?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    }
+    let content = serde_json::to_string(&position).map_err(|error| error.to_string())?;
+    fs::write(path, content).map_err(|error| error.to_string())
+}
+
+fn read_clock_position() -> Result<Option<ClockPosition>, String> {
+    let path = clock_position_path()?;
+    if !path.exists() {
+        return Ok(None);
+    }
+    let content = fs::read_to_string(path).map_err(|error| error.to_string())?;
+    serde_json::from_str(&content)
+        .map(Some)
+        .map_err(|error| error.to_string())
 }
 
 fn show_and_focus_window(window: &WebviewWindow) -> Result<(), String> {
@@ -758,6 +793,24 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
     let content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(&path, content).map_err(|e| e.to_string())?;
 
+    if let Some(controller) = app.try_state::<ClockPositionController>() {
+        controller
+            .0
+            .store(settings.general.remember_clock_position, Ordering::SeqCst);
+        if settings.general.remember_clock_position {
+            if let Some(clock_window) = app.get_webview_window("clock") {
+                if let Ok(position) = clock_window.outer_position() {
+                    if let Err(error) = save_clock_position(ClockPosition {
+                        x: position.x,
+                        y: position.y,
+                    }) {
+                        println!("WARN Failed to save clock position: {error}");
+                    }
+                }
+            }
+        }
+    }
+
     if let Some(controller) = app.try_state::<VisibilityController>() {
         let was_brief_schedule = controller.brief_schedule.load(Ordering::SeqCst)
             && controller.schedule_interval_minutes.load(Ordering::SeqCst) > 0;
@@ -937,12 +990,56 @@ pub fn run() {
             open_about_window,
             close_about_window,
         ])
+        .on_window_event(|window, event| {
+            if window.label() != "clock" {
+                return;
+            }
+            if let tauri::WindowEvent::Moved(position) = event {
+                let app = window.app_handle();
+                if app
+                    .try_state::<ClockPositionController>()
+                    .is_some_and(|controller| controller.0.load(Ordering::SeqCst))
+                {
+                    if let Err(error) = save_clock_position(ClockPosition {
+                        x: position.x,
+                        y: position.y,
+                    }) {
+                        println!("WARN Failed to save clock position: {error}");
+                    }
+                }
+            }
+        })
         .setup(|app| {
             let settings = validate_settings(app.handle()).unwrap_or_else(|error| {
                 println!("ERROR Failed to validate settings, using defaults: {error}");
                 SettingsFile::default()
             });
             app.manage(VisibilityController::new(&settings));
+            app.manage(ClockPositionController(AtomicBool::new(
+                settings.general.remember_clock_position,
+            )));
+
+            if settings.general.remember_clock_position {
+                if let Some(clock_window) = app.get_webview_window("clock") {
+                    match read_clock_position() {
+                        Ok(Some(position)) => {
+                            let position = tauri::PhysicalPosition::new(position.x, position.y);
+                            if let Err(error) =
+                                clock_window.set_position(tauri::Position::Physical(position))
+                            {
+                                println!("WARN Failed to restore clock position: {error}");
+                            }
+                        }
+                        Ok(None) => {
+                            let _ = clock_window.center();
+                        }
+                        Err(error) => {
+                            println!("WARN Failed to read clock position: {error}");
+                            let _ = clock_window.center();
+                        }
+                    }
+                }
+            }
 
             if let Err(error) =
                 apply_launch_on_startup(app.handle(), settings.general.launch_on_startup)
@@ -960,7 +1057,14 @@ pub fn run() {
                     check_for_updates(app_handle.clone(), enable_automatic_updates).await;
                 if !performing_update && !start_with_clock_hidden {
                     if let Some(clock_window) = app_handle.get_webview_window("clock") {
-                        let _ = clock_window.center();
+                        if !clock_window
+                            .app_handle()
+                            .state::<ClockPositionController>()
+                            .0
+                            .load(Ordering::SeqCst)
+                        {
+                            let _ = clock_window.center();
+                        }
                         let _ = clock_window.show();
                     }
                 }
