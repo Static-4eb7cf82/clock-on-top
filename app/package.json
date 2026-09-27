@@ -1,7 +1,7 @@
 {
   "name": "clock-on-top",
   "private": true,
-  "version": "0.8.2",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -17,8 +17,8 @@
     "@mui/icons-material": "^7.3.9",
     "@mui/joy": "^5.0.0-beta.52",
     "@mui/material": "^7.3.9",
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/api": "^2.12.0",
+    "@tauri-apps/plugin-opener": "^2.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
