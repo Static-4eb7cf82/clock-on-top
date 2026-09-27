@@ -41,3 +41,20 @@ body {
   cursor: grabbing;
 }
 
+.clock.flashing {
+  animation-name: clock-flash;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 4;
+}
+
+@keyframes clock-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.2;
+  }
+}
+

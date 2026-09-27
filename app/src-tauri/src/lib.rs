@@ -1,5 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::webview::PageLoadEvent;
 use tauri::Emitter;
 use tauri::Manager;
@@ -62,9 +64,30 @@ impl Default for GeneralSettings {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase", default)]
+struct VisibilitySettings {
+    fade_in_duration_ms: u64,
+    fade_out_duration_ms: u64,
+    scheduled_show_duration_seconds: u64,
+    schedule_interval_minutes: u64,
+}
+
+impl Default for VisibilitySettings {
+    fn default() -> Self {
+        VisibilitySettings {
+            fade_in_duration_ms: 250,
+            fade_out_duration_ms: 250,
+            scheduled_show_duration_seconds: 60,
+            schedule_interval_minutes: 0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase", default)]
 struct SettingsFile {
     general: GeneralSettings,
     clock: ClockSettings,
+    visibility: VisibilitySettings,
 }
 
 impl Default for SettingsFile {
@@ -72,6 +95,29 @@ impl Default for SettingsFile {
         SettingsFile {
             general: GeneralSettings::default(),
             clock: ClockSettings::default(),
+            visibility: VisibilitySettings::default(),
+        }
+    }
+}
+
+struct VisibilityController {
+    operation_generation: AtomicU64,
+    suppress_schedules_until: AtomicU64,
+    schedule_interval_minutes: AtomicU64,
+    scheduled_show_duration_seconds: AtomicU64,
+}
+
+impl VisibilityController {
+    fn new(settings: &SettingsFile) -> Self {
+        VisibilityController {
+            operation_generation: AtomicU64::new(0),
+            suppress_schedules_until: AtomicU64::new(0),
+            schedule_interval_minutes: AtomicU64::new(
+                settings.visibility.schedule_interval_minutes,
+            ),
+            scheduled_show_duration_seconds: AtomicU64::new(
+                settings.visibility.scheduled_show_duration_seconds,
+            ),
         }
     }
 }
@@ -84,6 +130,166 @@ fn settings_path(_app: &tauri::AppHandle) -> Result<PathBuf, String> {
 fn show_and_focus_window(window: &WebviewWindow) -> Result<(), String> {
     window.show().map_err(|e| e.to_string())?;
     window.set_focus().map_err(|e| e.to_string())
+}
+
+fn show_clock(app: &tauri::AppHandle) -> Result<u64, String> {
+    let window = app
+        .get_webview_window("clock")
+        .ok_or_else(|| "clock window is not available".to_string())?;
+    let already_visible = window.is_visible().unwrap_or(false);
+    if !already_visible {
+        window.show().map_err(|error| error.to_string())?;
+    }
+    let generation = app
+        .state::<VisibilityController>()
+        .operation_generation
+        .fetch_add(1, Ordering::SeqCst)
+        + 1;
+    app.state::<VisibilityController>()
+        .suppress_schedules_until
+        .store(0, Ordering::SeqCst);
+    app.emit("clock-show", already_visible)
+        .map_err(|error| error.to_string())?;
+    Ok(generation)
+}
+
+fn request_clock_hide(app: &tauri::AppHandle) -> Result<u64, String> {
+    let generation = app
+        .state::<VisibilityController>()
+        .operation_generation
+        .fetch_add(1, Ordering::SeqCst)
+        + 1;
+    if let Some(window) = app.get_webview_window("clock") {
+        if window.is_visible().unwrap_or(false) {
+            app.emit("clock-hide", ())
+                .map_err(|error| error.to_string())?;
+        }
+    }
+    Ok(generation)
+}
+
+fn hide_clock_for(app: &tauri::AppHandle, duration: Duration) {
+    let generation = match request_clock_hide(app) {
+        Ok(generation) => generation,
+        Err(error) => {
+            println!("ERROR Failed to hide clock: {error}");
+            return;
+        }
+    };
+    let deadline = unix_time_seconds().saturating_add(duration.as_secs());
+    app.state::<VisibilityController>()
+        .suppress_schedules_until
+        .store(deadline, Ordering::SeqCst);
+
+    let app_handle = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(duration);
+        if app_handle
+            .state::<VisibilityController>()
+            .operation_generation
+            .load(Ordering::SeqCst)
+            == generation
+        {
+            if let Err(error) = show_clock(&app_handle) {
+                println!("ERROR Failed to show clock after timed hide: {error}");
+            }
+        }
+    });
+}
+
+fn unix_time_seconds() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+}
+
+fn local_minute_mark() -> (u32, u64) {
+    #[cfg(target_os = "windows")]
+    {
+        use windows_sys::Win32::Foundation::SYSTEMTIME;
+        use windows_sys::Win32::System::SystemInformation::GetLocalTime;
+        let mut time: SYSTEMTIME = unsafe { std::mem::zeroed() };
+        unsafe { GetLocalTime(&mut time) };
+        let minute_key = (((time.wYear as u64 * 13 + time.wMonth as u64) * 32 + time.wDay as u64)
+            * 24
+            + time.wHour as u64)
+            * 60
+            + time.wMinute as u64;
+        return (time.wMinute as u32, minute_key);
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let minute_key = unix_time_seconds() / 60;
+        ((minute_key % 60) as u32, minute_key)
+    }
+}
+
+fn start_schedule_worker(app: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        let mut last_checked_minute = None;
+        loop {
+            let (minute, minute_key) = local_minute_mark();
+            let controller = app.state::<VisibilityController>();
+            let interval = controller.schedule_interval_minutes.load(Ordering::SeqCst);
+            if interval > 0 && Some(minute_key) != last_checked_minute {
+                last_checked_minute = Some(minute_key);
+                let is_scheduled_minute = match interval {
+                    15 | 30 => minute % interval as u32 == 0,
+                    45 => minute == 45,
+                    60 => minute == 0,
+                    _ => false,
+                };
+                if is_scheduled_minute
+                    && unix_time_seconds()
+                        >= controller.suppress_schedules_until.load(Ordering::SeqCst)
+                {
+                    let was_hidden = app
+                        .get_webview_window("clock")
+                        .and_then(|window| window.is_visible().ok())
+                        .map(|visible| !visible)
+                        .unwrap_or(false);
+                    match show_clock(&app) {
+                        Ok(generation) if was_hidden => {
+                            let app_handle = app.clone();
+                            let duration = controller
+                                .scheduled_show_duration_seconds
+                                .load(Ordering::SeqCst);
+                            std::thread::spawn(move || {
+                                std::thread::sleep(Duration::from_secs(duration));
+                                let controller = app_handle.state::<VisibilityController>();
+                                if controller.operation_generation.load(Ordering::SeqCst)
+                                    == generation
+                                    && app_handle
+                                        .get_webview_window("clock")
+                                        .and_then(|window| window.is_visible().ok())
+                                        .unwrap_or(false)
+                                {
+                                    let _ = request_clock_hide(&app_handle);
+                                }
+                            });
+                        }
+                        Ok(_) => {}
+                        Err(error) => println!("ERROR Scheduled clock show failed: {error}"),
+                    }
+                }
+            }
+            std::thread::sleep(Duration::from_millis(500));
+        }
+    });
+}
+
+fn set_schedule_interval(app: &tauri::AppHandle, interval: u64) {
+    match read_settings(app.clone()) {
+        Ok(mut settings) => {
+            settings.visibility.schedule_interval_minutes = interval;
+            if let Err(error) = write_settings(app.clone(), settings) {
+                println!("ERROR Failed to save schedule setting: {error}");
+            }
+        }
+        Err(error) => println!("ERROR Failed to read schedule setting: {error}"),
+    }
 }
 
 // Recreate auxiliary windows from tauri.conf.json so the runtime behavior stays
@@ -175,6 +381,34 @@ async fn check_for_updates(app_handle: tauri::AppHandle, enable_automatic_update
 }
 
 fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
+    let show_item = tauri::menu::MenuItemBuilder::with_id("clock_show", "Show").build(app)?;
+    let hide_15_item =
+        tauri::menu::MenuItemBuilder::with_id("hide_15", "For 15 minutes").build(app)?;
+    let hide_30_item =
+        tauri::menu::MenuItemBuilder::with_id("hide_30", "For 30 minutes").build(app)?;
+    let hide_60_item =
+        tauri::menu::MenuItemBuilder::with_id("hide_60", "For an hour").build(app)?;
+    let hide_submenu = tauri::menu::SubmenuBuilder::new(app, "Hide...")
+        .item(&hide_15_item)
+        .item(&hide_30_item)
+        .item(&hide_60_item)
+        .build()?;
+    let schedule_off = tauri::menu::MenuItemBuilder::with_id("schedule_0", "Off").build(app)?;
+    let schedule_15 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_15", "Every 15 minutes").build(app)?;
+    let schedule_30 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_30", "Every 30 minutes").build(app)?;
+    let schedule_45 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_45", "At :45 each hour").build(app)?;
+    let schedule_60 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_60", "Every hour").build(app)?;
+    let schedule_submenu = tauri::menu::SubmenuBuilder::new(app, "Schedule")
+        .item(&schedule_off)
+        .item(&schedule_15)
+        .item(&schedule_30)
+        .item(&schedule_45)
+        .item(&schedule_60)
+        .build()?;
     let about_clock_item =
         tauri::menu::MenuItemBuilder::with_id("about_window", "About Clock On Top...")
             .build(app)?;
@@ -188,6 +422,10 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
     let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
     let quit_item = tauri::menu::MenuItemBuilder::with_id("quit", "Quit").build(app)?;
     let menu = tauri::menu::MenuBuilder::new(app)
+        .item(&show_item)
+        .item(&hide_submenu)
+        .item(&schedule_submenu)
+        .item(&separator)
         .item(&settings_item)
         .item(&separator)
         .item(&more_submenu)
@@ -200,6 +438,19 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
         .icon(tauri::include_image!("icons/32x32.png"))
         .tooltip("Clock On Top")
         .on_menu_event(|app, event| match event.id().as_ref() {
+            "clock_show" => {
+                if let Err(error) = show_clock(app) {
+                    println!("ERROR Failed to show clock: {error}");
+                }
+            }
+            "hide_15" => hide_clock_for(app, Duration::from_secs(15 * 60)),
+            "hide_30" => hide_clock_for(app, Duration::from_secs(30 * 60)),
+            "hide_60" => hide_clock_for(app, Duration::from_secs(60 * 60)),
+            "schedule_0" => set_schedule_interval(app, 0),
+            "schedule_15" => set_schedule_interval(app, 15),
+            "schedule_30" => set_schedule_interval(app, 30),
+            "schedule_45" => set_schedule_interval(app, 45),
+            "schedule_60" => set_schedule_interval(app, 60),
             "settings" => {
                 let _ = open_aux_window(app, "settings");
             }
@@ -267,6 +518,17 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
 
     let content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(&path, content).map_err(|e| e.to_string())?;
+
+    if let Some(controller) = app.try_state::<VisibilityController>() {
+        controller.schedule_interval_minutes.store(
+            settings.visibility.schedule_interval_minutes,
+            Ordering::SeqCst,
+        );
+        controller.scheduled_show_duration_seconds.store(
+            settings.visibility.scheduled_show_duration_seconds,
+            Ordering::SeqCst,
+        );
+    }
 
     if let Err(error) = apply_launch_on_startup(&app, settings.general.launch_on_startup) {
         println!("WARN Failed to set launch on startup: {error}");
@@ -338,6 +600,20 @@ fn validate_settings(app: &tauri::AppHandle) -> Result<SettingsFile, String> {
     if settings.clock.border_radius < 0.0 || !settings.clock.border_radius.is_finite() {
         settings.clock.border_radius = defaults.clock.border_radius;
     }
+    if settings.visibility.fade_in_duration_ms > 2000 {
+        settings.visibility.fade_in_duration_ms = defaults.visibility.fade_in_duration_ms;
+    }
+    if settings.visibility.fade_out_duration_ms > 2000 {
+        settings.visibility.fade_out_duration_ms = defaults.visibility.fade_out_duration_ms;
+    }
+    if !(5..=300).contains(&settings.visibility.scheduled_show_duration_seconds) {
+        settings.visibility.scheduled_show_duration_seconds =
+            defaults.visibility.scheduled_show_duration_seconds;
+    }
+    if ![0, 15, 30, 45, 60].contains(&settings.visibility.schedule_interval_minutes) {
+        settings.visibility.schedule_interval_minutes =
+            defaults.visibility.schedule_interval_minutes;
+    }
 
     // Persist the validated (and potentially repaired) settings.
     if let Some(parent) = path.parent() {
@@ -387,6 +663,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             resize_window,
+            hide_clock_window,
             wait_for_left_mouse_button_release,
             read_settings,
             write_settings,
@@ -400,6 +677,7 @@ pub fn run() {
                 println!("ERROR Failed to validate settings, using defaults: {error}");
                 SettingsFile::default()
             });
+            app.manage(VisibilityController::new(&settings));
 
             if let Err(error) =
                 apply_launch_on_startup(app.handle(), settings.general.launch_on_startup)
@@ -422,9 +700,15 @@ pub fn run() {
             });
 
             setup_system_tray(app)?;
+            start_schedule_worker(app.handle().clone());
 
             Ok(())
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[tauri::command]
+fn hide_clock_window(window: tauri::WebviewWindow) -> Result<(), String> {
+    window.hide().map_err(|error| error.to_string())
 }

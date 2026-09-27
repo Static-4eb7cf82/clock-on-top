@@ -17,9 +17,17 @@ export interface GeneralSettings {
   appTheme: "light" | "dark" | "system";
 }
 
+export interface VisibilitySettings {
+  fadeInDurationMs: number;
+  fadeOutDurationMs: number;
+  scheduledShowDurationSeconds: number;
+  scheduleIntervalMinutes: number;
+}
+
 export interface SettingsFile {
   general: GeneralSettings;
   clock: ClockSettings;
+  visibility: VisibilitySettings;
 }
 
 export const SETTINGS_DEFAULTS: SettingsFile = {
@@ -27,6 +35,12 @@ export const SETTINGS_DEFAULTS: SettingsFile = {
     enableAutomaticUpdates: true,
     launchOnStartup: true,
     appTheme: "system",
+  },
+  visibility: {
+    fadeInDurationMs: 250,
+    fadeOutDurationMs: 250,
+    scheduledShowDurationSeconds: 60,
+    scheduleIntervalMinutes: 0,
   },
   clock: {
     fontFamily: "Space Grotesk",

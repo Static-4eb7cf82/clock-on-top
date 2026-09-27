@@ -9,9 +9,11 @@ import Typography from "@mui/joy/Typography";
 import Button from "@mui/joy/Button";
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
-import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile } from "../settings";
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import { ClockSettings, GeneralSettings, SETTINGS_DEFAULTS, SettingsFile, VisibilitySettings } from "../settings";
 import ClockStyleSectionSettings from "./ClockStyleSectionSettings";
 import GeneralSectionSettings from "./GeneralSectionSettings";
+import VisibilitySectionSettings from "./VisibilitySectionSettings";
 
 // ── Theme Controller ──────────────────────────────────────────────────────────
 
@@ -33,7 +35,7 @@ function ThemeController({ appTheme }: { appTheme: string }) {
 
 function Settings() {
   const [local, setLocal] = useState<SettingsFile>(SETTINGS_DEFAULTS);
-  const [activeSection, setActiveSection] = useState<"general" | "clock-style">(
+  const [activeSection, setActiveSection] = useState<"general" | "clock-style" | "visibility">(
     "general",
   );
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -76,6 +78,14 @@ function Settings() {
     });
   };
 
+  const updateVisibility = (updates: Partial<VisibilitySettings>) => {
+    setLocal((prev) => {
+      const next = { ...prev, visibility: { ...prev.visibility, ...updates } };
+      save(next);
+      return next;
+    });
+  };
+
   const resetClockOne = <K extends keyof ClockSettings>(key: K) =>
     updateClock({ [key]: SETTINGS_DEFAULTS.clock[key] });
 
@@ -87,6 +97,12 @@ function Settings() {
 
   const isGeneralDiff = <K extends keyof GeneralSettings>(key: K) =>
     local.general[key] !== SETTINGS_DEFAULTS.general[key];
+
+  const resetVisibilityOne = <K extends keyof VisibilitySettings>(key: K) =>
+    updateVisibility({ [key]: SETTINGS_DEFAULTS.visibility[key] });
+
+  const isVisibilityDiff = <K extends keyof VisibilitySettings>(key: K) =>
+    local.visibility[key] !== SETTINGS_DEFAULTS.visibility[key];
 
   const resetGeneralAll = () => {
     setLocal((prev) => {
@@ -105,6 +121,14 @@ function Settings() {
         ...prev,
         clock: SETTINGS_DEFAULTS.clock,
       };
+      save(next);
+      return next;
+    });
+  };
+
+  const resetVisibilityAll = () => {
+    setLocal((prev) => {
+      const next = { ...prev, visibility: SETTINGS_DEFAULTS.visibility };
       save(next);
       return next;
     });
@@ -168,6 +192,19 @@ function Settings() {
                   Clock Style
                 </Typography>
               </Button>
+              <Button
+                fullWidth
+                size="sm"
+                color="neutral"
+                variant="plain"
+                startDecorator={<VisibilityRoundedIcon sx={{ color: activeSection === "visibility" ? "neutral.softActiveColor" : undefined }} />}
+                onClick={() => setActiveSection("visibility")}
+                sx={{ justifyContent: "flex-start", bgcolor: activeSection === "visibility" ? "neutral.plainHoverBg" : undefined }}
+              >
+                <Typography level="body-sm" sx={{ color: activeSection === "visibility" ? "neutral.softActiveColor" : undefined }}>
+                  Visibility
+                </Typography>
+              </Button>
             </Box>
           </Sheet>
 
@@ -180,13 +217,21 @@ function Settings() {
                 isDiff={isGeneralDiff}
                 onResetAll={resetGeneralAll}
               />
-            ) : (
+            ) : activeSection === "clock-style" ? (
               <ClockStyleSectionSettings
                 local={local.clock}
                 update={updateClock}
                 resetOne={resetClockOne}
                 isDiff={isClockDiff}
                 onResetAll={resetClockAll}
+              />
+            ) : (
+              <VisibilitySectionSettings
+                local={local.visibility}
+                update={updateVisibility}
+                resetOne={resetVisibilityOne}
+                isDiff={isVisibilityDiff}
+                onResetAll={resetVisibilityAll}
               />
             )}
           </Box>
