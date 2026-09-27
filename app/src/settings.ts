@@ -17,11 +17,14 @@ export interface GeneralSettings {
   appTheme: "light" | "dark" | "system";
 }
 
+export type ScheduleMode = "flash" | "briefShow";
+
 export interface VisibilitySettings {
   fadeInDurationMs: number;
   fadeOutDurationMs: number;
   scheduledShowDurationSeconds: number;
   scheduleIntervalMinutes: number;
+  scheduleMode: ScheduleMode;
 }
 
 export interface SettingsFile {
@@ -41,6 +44,7 @@ export const SETTINGS_DEFAULTS: SettingsFile = {
     fadeOutDurationMs: 250,
     scheduledShowDurationSeconds: 60,
     scheduleIntervalMinutes: 0,
+    scheduleMode: "briefShow",
   },
   clock: {
     fontFamily: "Space Grotesk",

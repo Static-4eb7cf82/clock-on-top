@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::webview::PageLoadEvent;
 use tauri::Emitter;
@@ -62,6 +62,19 @@ impl Default for GeneralSettings {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum ScheduleMode {
+    Flash,
+    BriefShow,
+}
+
+impl Default for ScheduleMode {
+    fn default() -> Self {
+        ScheduleMode::BriefShow
+    }
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 struct VisibilitySettings {
@@ -69,6 +82,7 @@ struct VisibilitySettings {
     fade_out_duration_ms: u64,
     scheduled_show_duration_seconds: u64,
     schedule_interval_minutes: u64,
+    schedule_mode: ScheduleMode,
 }
 
 impl Default for VisibilitySettings {
@@ -78,6 +92,7 @@ impl Default for VisibilitySettings {
             fade_out_duration_ms: 250,
             scheduled_show_duration_seconds: 60,
             schedule_interval_minutes: 0,
+            schedule_mode: ScheduleMode::default(),
         }
     }
 }
@@ -105,6 +120,7 @@ struct VisibilityController {
     suppress_schedules_until: AtomicU64,
     schedule_interval_minutes: AtomicU64,
     scheduled_show_duration_seconds: AtomicU64,
+    brief_schedule: AtomicBool,
 }
 
 impl VisibilityController {
@@ -118,6 +134,10 @@ impl VisibilityController {
             scheduled_show_duration_seconds: AtomicU64::new(
                 settings.visibility.scheduled_show_duration_seconds,
             ),
+            brief_schedule: AtomicBool::new(matches!(
+                settings.visibility.schedule_mode,
+                ScheduleMode::BriefShow
+            )),
         }
     }
 }
@@ -233,6 +253,7 @@ fn start_schedule_worker(app: tauri::AppHandle) {
             let (minute, minute_key) = local_minute_mark();
             let controller = app.state::<VisibilityController>();
             let interval = controller.schedule_interval_minutes.load(Ordering::SeqCst);
+            let brief_schedule = controller.brief_schedule.load(Ordering::SeqCst);
             if interval > 0 && Some(minute_key) != last_checked_minute {
                 last_checked_minute = Some(minute_key);
                 let is_scheduled_minute = match interval {
@@ -251,7 +272,7 @@ fn start_schedule_worker(app: tauri::AppHandle) {
                         .map(|visible| !visible)
                         .unwrap_or(false);
                     match show_clock(&app) {
-                        Ok(generation) if was_hidden => {
+                        Ok(generation) if brief_schedule || was_hidden => {
                             let app_handle = app.clone();
                             let duration = controller
                                 .scheduled_show_duration_seconds
@@ -280,10 +301,13 @@ fn start_schedule_worker(app: tauri::AppHandle) {
     });
 }
 
-fn set_schedule_interval(app: &tauri::AppHandle, interval: u64) {
+fn set_schedule(app: &tauri::AppHandle, interval: u64, mode: Option<ScheduleMode>) {
     match read_settings(app.clone()) {
         Ok(mut settings) => {
             settings.visibility.schedule_interval_minutes = interval;
+            if let Some(mode) = mode {
+                settings.visibility.schedule_mode = mode;
+            }
             if let Err(error) = write_settings(app.clone(), settings) {
                 println!("ERROR Failed to save schedule setting: {error}");
             }
@@ -393,21 +417,47 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
         .item(&hide_30_item)
         .item(&hide_60_item)
         .build()?;
-    let schedule_off = tauri::menu::MenuItemBuilder::with_id("schedule_0", "Off").build(app)?;
-    let schedule_15 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_15", "Every 15 minutes").build(app)?;
-    let schedule_30 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_30", "Every 30 minutes").build(app)?;
-    let schedule_45 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_45", "At :45 each hour").build(app)?;
-    let schedule_60 =
-        tauri::menu::MenuItemBuilder::with_id("schedule_60", "Every hour").build(app)?;
+    let schedule_off = tauri::menu::MenuItemBuilder::with_id("schedule_off", "Off").build(app)?;
+    let schedule_flash_15 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_15", "Flash every 15 minutes")
+            .build(app)?;
+    let schedule_flash_30 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_30", "Flash every 30 minutes")
+            .build(app)?;
+    let schedule_flash_45 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_45", "Flash at :45 each hour")
+            .build(app)?;
+    let schedule_flash_60 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_flash_60", "Flash every hour")
+            .build(app)?;
+    let schedule_brief_15 = tauri::menu::MenuItemBuilder::with_id(
+        "schedule_brief_15",
+        "Hide; show briefly every 15 minutes",
+    )
+    .build(app)?;
+    let schedule_brief_30 = tauri::menu::MenuItemBuilder::with_id(
+        "schedule_brief_30",
+        "Hide; show briefly every 30 minutes",
+    )
+    .build(app)?;
+    let schedule_brief_45 = tauri::menu::MenuItemBuilder::with_id(
+        "schedule_brief_45",
+        "Hide; show briefly at :45 each hour",
+    )
+    .build(app)?;
+    let schedule_brief_60 =
+        tauri::menu::MenuItemBuilder::with_id("schedule_brief_60", "Hide; show briefly every hour")
+            .build(app)?;
     let schedule_submenu = tauri::menu::SubmenuBuilder::new(app, "Schedule")
         .item(&schedule_off)
-        .item(&schedule_15)
-        .item(&schedule_30)
-        .item(&schedule_45)
-        .item(&schedule_60)
+        .item(&schedule_flash_15)
+        .item(&schedule_flash_30)
+        .item(&schedule_flash_45)
+        .item(&schedule_flash_60)
+        .item(&schedule_brief_15)
+        .item(&schedule_brief_30)
+        .item(&schedule_brief_45)
+        .item(&schedule_brief_60)
         .build()?;
     let about_clock_item =
         tauri::menu::MenuItemBuilder::with_id("about_window", "About Clock On Top...")
@@ -446,11 +496,15 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
             "hide_15" => hide_clock_for(app, Duration::from_secs(15 * 60)),
             "hide_30" => hide_clock_for(app, Duration::from_secs(30 * 60)),
             "hide_60" => hide_clock_for(app, Duration::from_secs(60 * 60)),
-            "schedule_0" => set_schedule_interval(app, 0),
-            "schedule_15" => set_schedule_interval(app, 15),
-            "schedule_30" => set_schedule_interval(app, 30),
-            "schedule_45" => set_schedule_interval(app, 45),
-            "schedule_60" => set_schedule_interval(app, 60),
+            "schedule_off" => set_schedule(app, 0, None),
+            "schedule_flash_15" => set_schedule(app, 15, Some(ScheduleMode::Flash)),
+            "schedule_flash_30" => set_schedule(app, 30, Some(ScheduleMode::Flash)),
+            "schedule_flash_45" => set_schedule(app, 45, Some(ScheduleMode::Flash)),
+            "schedule_flash_60" => set_schedule(app, 60, Some(ScheduleMode::Flash)),
+            "schedule_brief_15" => set_schedule(app, 15, Some(ScheduleMode::BriefShow)),
+            "schedule_brief_30" => set_schedule(app, 30, Some(ScheduleMode::BriefShow)),
+            "schedule_brief_45" => set_schedule(app, 45, Some(ScheduleMode::BriefShow)),
+            "schedule_brief_60" => set_schedule(app, 60, Some(ScheduleMode::BriefShow)),
             "settings" => {
                 let _ = open_aux_window(app, "settings");
             }
@@ -520,6 +574,10 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
     fs::write(&path, content).map_err(|e| e.to_string())?;
 
     if let Some(controller) = app.try_state::<VisibilityController>() {
+        let was_brief_schedule = controller.brief_schedule.load(Ordering::SeqCst)
+            && controller.schedule_interval_minutes.load(Ordering::SeqCst) > 0;
+        let is_brief_schedule = settings.visibility.schedule_mode == ScheduleMode::BriefShow
+            && settings.visibility.schedule_interval_minutes > 0;
         controller.schedule_interval_minutes.store(
             settings.visibility.schedule_interval_minutes,
             Ordering::SeqCst,
@@ -528,6 +586,19 @@ fn write_settings(app: tauri::AppHandle, settings: SettingsFile) -> Result<(), S
             settings.visibility.scheduled_show_duration_seconds,
             Ordering::SeqCst,
         );
+        controller
+            .brief_schedule
+            .store(is_brief_schedule, Ordering::SeqCst);
+        if was_brief_schedule != is_brief_schedule {
+            let visibility_result = if is_brief_schedule {
+                request_clock_hide(&app).map(|_| ())
+            } else {
+                show_clock(&app).map(|_| ())
+            };
+            if let Err(error) = visibility_result {
+                println!("WARN Failed to apply schedule visibility: {error}");
+            }
+        }
     }
 
     if let Err(error) = apply_launch_on_startup(&app, settings.general.launch_on_startup) {
@@ -613,6 +684,12 @@ fn validate_settings(app: &tauri::AppHandle) -> Result<SettingsFile, String> {
     if ![0, 15, 30, 45, 60].contains(&settings.visibility.schedule_interval_minutes) {
         settings.visibility.schedule_interval_minutes =
             defaults.visibility.schedule_interval_minutes;
+    }
+    if !matches!(
+        settings.visibility.schedule_mode,
+        ScheduleMode::Flash | ScheduleMode::BriefShow
+    ) {
+        settings.visibility.schedule_mode = defaults.visibility.schedule_mode;
     }
 
     // Persist the validated (and potentially repaired) settings.

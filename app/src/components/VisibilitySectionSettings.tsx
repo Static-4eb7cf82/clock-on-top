@@ -76,8 +76,27 @@ function VisibilitySectionSettings({ local, update, resetOne, isDiff, onResetAll
           </SettingRow>
 
           <SettingRow
-            label="Schedule"
-            description="Choose a recurring local-time minute mark"
+            label="Schedule Behavior"
+            description="Keep the clock visible and flash every interval, or hide it between intervals then show it briefly"
+            isDirty={isDiff("scheduleMode")}
+            onReset={() => resetOne("scheduleMode")}
+          >
+            <Select
+              size="sm"
+              value={local.scheduleMode}
+              onChange={(_, value) => {
+                if (value !== null) update({ scheduleMode: value });
+              }}
+              sx={{ minWidth: 190 }}
+            >
+              <Option value="briefShow">Hide and show briefly</Option>
+              <Option value="flash">Keep visible and flash</Option>
+            </Select>
+          </SettingRow>
+
+          <SettingRow
+            label="Schedule Interval"
+            description="Choose a recurring interval minute mark"
             isDirty={isDiff("scheduleIntervalMinutes")}
             onReset={() => resetOne("scheduleIntervalMinutes")}
           >
